@@ -29,6 +29,9 @@ const ROUTES = {
   '/html/README.md': { type: 'text/html; charset=utf-8', body: Buffer.from('<!doctype html><title>GitHub-like</title><h1 id="gh">本來就是網頁</h1>') },
   '/download': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E4%B8%8B%E8%BC%89%E6%B8%AC%E8%A9%A6.md" } },
   '/xss.md': { type: 'text/plain; charset=utf-8', body: XSS },
+  // 模擬 drive.usercontent.google.com 的回應格式(附件 + UTF-8 檔名)
+  '/drive-like/download': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E9%80%B1%E6%9C%83%E7%B4%80%E9%8C%84.md" }, body: Buffer.from('# 週會紀錄\n\n> [!tip] 從 Drive 開的\n> 看得懂 Obsidian 提示框 MDR-DRIVE-OK\n') },
+  '/drive-like/noh1': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E7%84%A1%E6%A8%99%E9%A1%8C%E7%AD%86%E8%A8%98.md" }, body: Buffer.from('沒有標題的內容') },
 };
 const server = http.createServer((req, res) => {
   const route = ROUTES[new URL(req.url, 'http://x').pathname];
@@ -657,6 +660,122 @@ await check('8 Obsidian', '閱讀頁也能畫流程圖;沒有流程圖的文件�
   assert(svgs === 2 && !loaded, `svgs=${svgs}, 一般文件載入了 mermaid=${loaded}`);
   return '閱讀頁 2 張圖;一般文件沒載入';
 });
+
+// ========== 9 Google Drive(v0.5)==========
+// Drive 頁面需要登入,用模擬頁面測按鈕的判斷邏輯(真實結構已確認:標題「檔名 - Google 雲端硬碟」、列表列有 data-id)
+// 閱讀頁的下載則打真正的 Google(模擬攔不到插件頁面的請求):公開檔測成功路線、不存在的編號測錯誤路線
+const DRIVE_MD = 'AAAAAAAAAAAAAAAAAAAAmdfile1';
+const DRIVE_PDF = 'BBBBBBBBBBBBBBBBBBBBpdfile1';
+const DRIVE_NOACCESS = 'CCCCCCCCCCCCCCCCCCnoaccess';
+const fakePage = (title, body = '') => ({ status: 200, contentType: 'text/html; charset=utf-8', body: `<!doctype html><title>${title}</title><body>${body}</body>` });
+await context.route(/^https:\/\/(drive|docs)\.google\.com\/(file|document|drive)\//, (route) => {
+  const url = new URL(route.request().url());
+  if (url.pathname === `/file/d/${DRIVE_MD}/view`) return route.fulfill(fakePage('週會紀錄.md - Google 雲端硬碟', '<div>預覽</div>'));
+  if (url.pathname === `/file/d/${DRIVE_NOACCESS}/view`) return route.fulfill(fakePage('機密.md - Google Drive'));
+  if (url.pathname === `/file/d/${DRIVE_PDF}/view`) return route.fulfill(fakePage('README.pdf - Google 雲端硬碟'));
+  if (url.pathname === `/document/d/${DRIVE_MD}/edit`) return route.fulfill(fakePage('週會紀錄.md - Google 文件'));
+  if (url.pathname.startsWith('/drive/folders/')) {
+    return route.fulfill(fakePage('資料夾 - Google 雲端硬碟', `<table>
+      <tr role="row" data-id="${DRIVE_PDF}" aria-selected="false" aria-label="README.pdf 已共用 1.9 MB"><td>README.pdf</td></tr>
+      <tr role="row" data-id="${DRIVE_MD}" aria-selected="false" aria-label="週會紀錄.md 已共用 1 KB"><td>週會紀錄.md</td></tr></table>`));
+  }
+  return route.fulfill(fakePage('Google 雲端硬碟'));
+});
+const driveButton = (page) => page.evaluate(() => {
+  const b = document.getElementById('mdr-drive-open');
+  return b && b.style.display !== 'none' ? b.textContent : null;
+});
+await check('9 Google Drive', '預覽頁(.md)出現按鈕,按下去開閱讀頁並帶上檔案編號與檔名', async () => {
+  const page = await open(`https://drive.google.com/file/d/${DRIVE_MD}/view`);
+  await page.waitForTimeout(1200);
+  const label = await driveButton(page);
+  assert(label?.includes('週會紀錄.md'), `按鈕:${label}`);
+  const viewer = await expectNewPage(() => page.click('#mdr-drive-open'));
+  const url = new URL(viewer.url());
+  await viewer.close();
+  await page.close();
+  const src = url.searchParams.get('src');
+  assert(url.pathname.endsWith('/pages/viewer.html') && src === `https://drive.google.com/uc?export=download&id=${DRIVE_MD}` && url.searchParams.get('name') === '週會紀錄.md', url.href);
+  return `按鈕「${label}」→ viewer.html?src=…uc?export=download&id=…`;
+});
+await check('9 Google Drive', '閱讀頁排版 Drive 格式的回應(附件、檔名、Obsidian 語法)', async () => {
+  const viewer = (path, name = '') => `chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(BASE + path)}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
+  const page = await open(viewer('/drive-like/download'));
+  const r = await page.evaluate(() => ({ mdr: document.documentElement.dataset.mdr, ok: document.body.innerText.includes('MDR-DRIVE-OK'), callout: !!document.querySelector('.callout[data-callout="tip"]'), title: document.title }));
+  await page.close();
+  const noH1 = await open(viewer('/drive-like/noh1'));
+  const t = await noH1.title();
+  await noH1.close();
+  assert(r.mdr === 'rendered' && r.ok && r.callout && r.title === '週會紀錄' && t === '無標題筆記.md', JSON.stringify({ ...r, noH1Title: t }));
+  return '排版成功;沒有標題時用伺服器給的檔名「無標題筆記.md」';
+});
+await check('9 Google Drive', '真實 Google Drive:公開檔經轉址下載成功(需連網)', async () => {
+  const PUBLIC_PDF = '1MpnIzKNcYjDcW0e7tOF0HJLe8eHjo8Lw'; // 網路上公開的 README.pdf,只用來驗證下載路線
+  const page = await open(`chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(`https://drive.google.com/uc?export=download&id=${PUBLIC_PDF}`)}`);
+  await page.waitForFunction(() => document.documentElement.dataset.mdr !== 'loading', null, { timeout: 30000 });
+  const r = await page.evaluate(() => ({ mdr: document.documentElement.dataset.mdr, title: document.title, error: document.querySelector('.mdr-error')?.textContent }));
+  await page.close();
+  assert(r.mdr === 'rendered' && r.title === 'README.pdf', JSON.stringify(r));
+  return '303 轉址 → drive.usercontent.google.com → 取得內容與檔名 README.pdf';
+});
+await check('9 Google Drive', '真實 Google Drive:檔案不存在/沒權限時說明原因(需連網)', async () => {
+  const page = await open(`https://drive.google.com/file/d/${DRIVE_NOACCESS}/view`);
+  await page.waitForTimeout(1200);
+  const viewer = await expectNewPage(() => page.click('#mdr-drive-open'));
+  await viewer.waitForFunction(() => document.documentElement.dataset.mdr !== 'loading', null, { timeout: 30000 });
+  const r = await pageState(viewer);
+  await viewer.close();
+  await page.close();
+  assert(r.mdr === 'error' && r.text.includes('Google Drive') && r.text.includes('下載'), r.text);
+  return r.text.slice(0, 44) + '…';
+});
+await check('9 Google Drive', '網址其實是一般網頁時,不把網頁原始碼當文件', async () => {
+  const page = await open(`chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(`${BASE}/html/README.md`)}`);
+  const r = await pageState(page);
+  await page.close();
+  assert(r.mdr === 'error' && r.text.includes('不是 Markdown'), r.text);
+  return r.text;
+});
+await check('9 Google Drive', '不是 .md 的檔案不出現按鈕', async () => {
+  const page = await open(`https://drive.google.com/file/d/${DRIVE_PDF}/view`);
+  await page.waitForTimeout(1200);
+  const label = await driveButton(page);
+  await page.close();
+  assert(label === null, `PDF 也出現按鈕:${label}`);
+  return 'PDF 沒有按鈕';
+});
+await check('9 Google Drive', '檔案列表:選取 .md 才出現按鈕', async () => {
+  const page = await open('https://drive.google.com/drive/folders/fake');
+  await page.waitForTimeout(1200);
+  const none = await driveButton(page);
+  await page.evaluate((id) => document.querySelector(`[data-id="${id}"]`).setAttribute('aria-selected', 'true'), DRIVE_MD);
+  await page.waitForTimeout(1200);
+  const selected = await driveButton(page);
+  await page.close();
+  assert(none === null && selected?.includes('週會紀錄.md'), `沒選:${none};選了:${selected}`);
+  return '沒選不顯示,選了 .md 才顯示';
+});
+await check('9 Google Drive', 'Google 文件的 Markdown 模式也有按鈕', async () => {
+  const page = await open(`https://docs.google.com/document/d/${DRIVE_MD}/edit`);
+  await page.waitForTimeout(1200);
+  const label = await driveButton(page);
+  await page.close();
+  assert(label?.includes('週會紀錄.md'), `按鈕:${label}`);
+  return label;
+});
+await check('9 Google Drive', '最近開過標示為 Drive;關掉設定就不顯示按鈕', async () => {
+  const recent = await listRecent();
+  const drive = recent.find((r) => r.kind === 'drive');
+  await setSettings({ driveButton: false });
+  const page = await open(`https://drive.google.com/file/d/${DRIVE_MD}/view`);
+  await page.waitForTimeout(1200);
+  const label = await driveButton(page);
+  await page.close();
+  await resetSettings();
+  assert(drive?.title === 'README.pdf' && label === null, JSON.stringify({ drive, label }));
+  return '☁️ Drive 紀錄 ✓、按鈕可關閉 ✓';
+});
+await context.unroute(/^https:\/\/(drive|docs)\.google\.com\/(file|document|drive)\//);
 
 // ========== 2 下載(三種模式)==========
 await check('2 下載', '預設「跳通知」:下載 .md 後出現通知', async () => {

@@ -1,6 +1,6 @@
 // 工具列小視窗:開啟檔案、貼上文字或網址、最近開過、設定入口
 // 注意:小視窗一失去焦點就會關閉,所以「選檔」改開一個分頁來做(Mac 的選檔視窗會搶走焦點)
-const KIND = { file: ['📄', '本機'], web: ['🌐', '網路'], text: ['📋', '貼上'] };
+const KIND = { file: ['📄', '本機'], web: ['🌐', '網路'], drive: ['☁️', 'Drive'], text: ['📋', '貼上'] };
 document.getElementById('version').textContent = `v${chrome.runtime.getManifest().version}`;
 
 // 開新分頁後關掉小視窗

@@ -20,6 +20,7 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **會被 DOMPurify 擋的網址(`obsidian://`)不能在解析階段產生**:解析只寫 `data-href` / `data-embed`,消毒後由 `core/obsidian.js` 依設定填入(改設定時即時重填)。
 - **大型元件延遲載入**:Mermaid 只在文件有流程圖時載入 —— 一般網頁請背景管家 `chrome.scripting` 注入(`LAZY_SCRIPTS` 白名單),插件頁面直接加 `<script>`。
 - **content script 注入的 CSS 不能用相對路徑載字型/圖片**(會對到網頁):`npm run sync` 把 KaTeX 字型網址改寫成 `chrome-extension://__MSG_@@extension_id__/…`,字型列在 `web_accessible_resources`。
+- **Google Drive**:Google 已能自己排版一般 .md,Drive 按鈕定位是「看 Obsidian 語法」;原文用 `uc?export=download&id=` 由閱讀頁帶 Cookie 讀(`content/drive.js`、`MDR.driveUrl`)。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 
@@ -34,4 +35,5 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - 啟動載入插件的測試瀏覽器:`tests/lib/launch.mjs`(兩套測試共用)。
 - 用插件**名稱**找背景程式(Chrome 內建元件擴充也有叫 `background.js` 的背景程式)。
 - 下載測試要先用 CDP `Browser.setDownloadBehavior` 改回正常行為,否則 Playwright 會把檔名改成 GUID。
-- Google Drive、Windows、真實 Chrome 的通知需人工測試,見 `docs/verification/`。
+- Playwright 的 `context.route` 攔不到插件頁面(viewer)的請求:Drive 頁面用模擬,閱讀頁下載打真正的 Google(公開 PDF 測成功、假編號測 404)。
+- 登入後的 Google Drive、Windows、真實 Chrome 的通知需人工測試,見 `docs/verification/`。

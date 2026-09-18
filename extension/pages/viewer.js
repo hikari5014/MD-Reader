@@ -1,5 +1,5 @@
 // 閱讀頁:給「不能就地排版」的入口用
-//   viewer.html?src=<網址或 file:// 網址>  右鍵開啟、小視窗貼網址、(之後)Google Drive
+//   viewer.html?src=<網址或 file:// 網址>  右鍵開啟、小視窗貼網址、Google Drive(&name=檔名)
 //   viewer.html?doc=<文件庫 id>            小視窗貼上的文字、開啟檔案頁選的檔
 (async () => {
   const params = new URLSearchParams(location.search);
@@ -7,11 +7,12 @@
   const docId = params.get('doc');
   try {
     if (src) {
-      const text = await loadText(src);
+      const { text, fileName } = await loadText(src);
       const base = document.createElement('base');
       base.href = src; // 讓文件裡的相對圖片、連結指回原本的位置
       document.head.append(base);
-      await MDR.mount(document, text, decodeURIComponent(src.split(/[/?#]/).filter(Boolean).pop() || 'Markdown'));
+      const fallback = params.get('name') || fileName || decodeURIComponent(src.split(/[/?#]/).filter(Boolean).pop() || 'Markdown');
+      await MDR.mount(document, text, fallback);
       MDR.addRecent({ title: document.title, src });
     } else if (docId) {
       const doc = await MDR.loadDoc(docId);
@@ -31,19 +32,30 @@
   }
 })();
 
-// fetch 不支援 file://,本機檔改用 XMLHttpRequest(需開「允許存取檔案網址」)
-function loadText(src) {
+// 回傳 { text, fileName }。fetch 不支援 file://,本機檔改用 XMLHttpRequest(需開「允許存取檔案網址」)
+async function loadText(src) {
   if (!src.startsWith('file:')) {
-    return fetch(src, { credentials: 'include' }).then((r) => {
-      if (!r.ok) throw new Error(`伺服器回應 ${r.status}`);
-      return r.text();
+    const drive = MDR.isDriveUrl(src);
+    const res = await fetch(src, { credentials: 'include' }).catch(() => {
+      throw new Error(drive ? '連不上 Google Drive,請檢查網路' : '連不上這個網址,請檢查網路');
     });
+    if (!res.ok) throw new Error(drive ? `Google Drive 回應 ${res.status}:可能沒有這個檔案的權限。可以改用 Drive 的「下載」,下載完 MD隨手讀 會跳通知幫你打開` : `伺服器回應 ${res.status}`);
+    // 拿到網頁而不是檔案:Drive 多半是沒登入、沒權限;其他網址就是這個網址本來就不是 Markdown 檔
+    if ((res.headers.get('content-type') || '').startsWith('text/html')) {
+      throw new Error(drive
+        ? 'Google Drive 沒有給檔案內容(可能沒登入這個帳號,或沒有權限)。可以改用 Drive 的「下載」,下載完 MD隨手讀 會跳通知幫你打開'
+        : '這個網址打開是一般網頁,不是 Markdown 檔');
+    }
+    const disposition = res.headers.get('content-disposition') || '';
+    const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+    const plain = disposition.match(/filename="([^"]+)"/i)?.[1];
+    return { text: await res.text(), fileName: encoded ? decodeURIComponent(encoded) : plain || '' };
   }
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', src);
     xhr.overrideMimeType('text/plain; charset=utf-8');
-    xhr.onload = () => resolve(xhr.responseText);
+    xhr.onload = () => resolve({ text: xhr.responseText, fileName: '' });
     xhr.onerror = () => reject(new Error('讀不到本機檔案(可能還沒開「允許存取檔案網址」)'));
     xhr.send();
   });

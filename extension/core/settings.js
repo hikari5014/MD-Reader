@@ -10,6 +10,7 @@
     recordRecent: true, // 記錄最近開過的檔案(顯示在小視窗)
     showProperties: true, // 顯示筆記開頭的屬性表(frontmatter)
     obsidianVault: '', // 填了 → [[連結]] 用 Obsidian App 打開;空白 → 找同資料夾的 .md
+    driveButton: true, // 在 Google Drive / 文件看到 .md 時,顯示「用 MD隨手讀 開啟」按鈕
   });
   const WIDTHS = { narrow: '680px', medium: '760px', wide: '960px', full: 'none' };
 

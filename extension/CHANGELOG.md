@@ -1,5 +1,28 @@
 # 更新日誌
 
+## v0.5.0 — Google Drive(2026-09-18)
+
+**白話說明**:在 Google Drive 或 Google 文件看到 .md 時,右下角會出現「📖 用 MD隨手讀 開啟」,按下去就用 MD隨手讀 排版。Google 自己的預覽已經能顯示一般 Markdown,這顆按鈕主要是給 Obsidian 筆記用的(提示框、雙中括號連結、屬性表、流程圖、公式 Google 都看不懂)。
+
+### 新增
+- **Drive 按鈕**:三個地方會出現 —— 檔案預覽頁、Google 文件的 Markdown 模式、Drive 列表裡選取了一個 .md 時
+- 讀不到檔案(沒登入、沒權限)時,清楚說明原因,並建議改用 Drive 的「下載」(下載完 MD隨手讀 會跳通知幫你打開)
+- 小視窗「最近開過」會把 Drive 的檔案標成 ☁️ Drive
+- 設定頁「閱讀」新增:Google Drive 按鈕(開關)
+- 閱讀頁開網路檔時,改用伺服器給的真正檔名當標題;打開的網址如果其實是一般網頁,會說明「不是 Markdown 檔」,不會把網頁原始碼當文件排版
+
+### 修正
+- (無)
+
+### 影響範圍
+- 移除第 0 期的「🧪 Drive 診斷」按鈕
+- Google 文件(docs.google.com/document)頁面也會載入 MD隨手讀 的小程式(只在標題是 .md 時顯示按鈕)
+
+### 技術細節
+- 新增 `content/drive.js`:每秒檢查目前檔案(Drive 是單頁應用程式,網址與畫面會原地變);檔案編號取自網址 `/file/d/<ID>`、`/document/d/<ID>`,或列表中 `[data-id][aria-selected="true"]`
+- 原文用 `https://drive.google.com/uc?export=download&id=<ID>` 取得(會 303 轉到 drive.usercontent.google.com 並附檔名),由閱讀頁帶登入 Cookie 讀取 —— 已用公開檔實測確認轉址與檔名
+- 真實 Drive 頁面需要登入,自動化測試用模擬頁面測判斷邏輯;登入後的實際效果列在人工驗收
+
 ## v0.4.0 — 看得懂 Obsidian 筆記、流程圖、數學公式(2026-09-18)
 
 **白話說明**:Obsidian 筆記現在能漂亮顯示了:開頭的屬性變成屬性表、`[[雙中括號連結]]` 可以點、`> [!tip]` 變成彩色提示框,還有螢光筆、標籤、腳註、嵌入圖片。另外流程圖(Mermaid)和數學公式也會直接畫出來。

@@ -10,11 +10,15 @@
     const { recordRecent } = await MDR.loadSettings();
     if (!recordRecent) return;
     const key = entry.src || entry.doc;
-    const kind = entry.doc ? 'text' : entry.src.startsWith('file:') ? 'file' : 'web';
+    const kind = entry.doc ? 'text' : entry.src.startsWith('file:') ? 'file' : isDriveUrl(entry.src) ? 'drive' : 'web';
     const recent = await listRecent();
     const next = [{ ...entry, kind, time: Date.now() }, ...recent.filter((r) => (r.src || r.doc) !== key)];
     await chrome.storage.local.set({ recent: next.slice(0, MAX_RECENT) });
   }
+  // Google Drive 的檔案下載網址(用檔案編號)
+  const driveUrl = (id) => `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`;
+  const isDriveUrl = (url) => /^https:\/\/drive\.(google|usercontent\.google)\.com\/(uc|download)\?/.test(url);
+
   const listRecent = async () => (await chrome.storage.local.get('recent')).recent || [];
 
   async function saveDoc(name, text) {
@@ -40,5 +44,5 @@
     return /^(https?|file):\/\/\S+$/i.test(t) ? { src: MDR.toRawUrl(t) } : { text: t };
   }
 
-  globalThis.MDR = Object.assign(globalThis.MDR || {}, { addRecent, listRecent, saveDoc, loadDoc, clearHistory, viewerUrl, reopenUrl, parsePasted });
+  globalThis.MDR = Object.assign(globalThis.MDR || {}, { addRecent, listRecent, saveDoc, loadDoc, clearHistory, viewerUrl, reopenUrl, parsePasted, driveUrl, isDriveUrl });
 })();

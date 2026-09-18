@@ -1,4 +1,4 @@
-// 背景管家:安裝引導、右鍵選單、下載處理、打開設定頁、Drive 診斷(第 0 期實驗用)
+// 背景管家:安裝引導、右鍵選單、下載處理、打開設定頁、Google Drive 開檔、延遲載入元件
 importScripts('core/detect.js', 'core/settings.js', 'core/library.js');
 
 const NOTIFY_PREFIX = 'mdr-dl-';
@@ -74,28 +74,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .then(() => sendResponse(true), (e) => sendResponse(e.message));
     return true;
   }
-  // 第 0 期實驗:Google Drive 能不能拿到 .md 原文
-  if (msg?.type === 'drive-probe') {
-    probeDrive(msg.ids).then(sendResponse);
-    return true;
+  // Google Drive 的「用 MD隨手讀 開啟」:用檔案編號下載原文,在閱讀頁排版
+  if (msg?.type === 'open-drive-file' && sender.tab) {
+    const url = MDR.viewerUrl({ src: MDR.driveUrl(msg.id) }) + `&name=${encodeURIComponent(msg.name || '')}`;
+    chrome.tabs.create({ url, index: sender.tab.index + 1, openerTabId: sender.tab.id });
   }
 });
-
-async function probeDrive(ids) {
-  const results = [];
-  for (const id of ids.slice(0, 3)) {
-    for (const url of [
-      `https://drive.google.com/uc?export=download&id=${id}`,
-      `https://drive.usercontent.google.com/download?id=${id}&export=download`,
-    ]) {
-      try {
-        const res = await fetch(url, { credentials: 'include' });
-        const text = await res.text();
-        results.push({ id, url, status: res.status, finalUrl: res.url, type: res.headers.get('content-type'), length: text.length, head: text.slice(0, 200) });
-      } catch (e) {
-        results.push({ id, url, error: String(e) });
-      }
-    }
-  }
-  return results;
-}
