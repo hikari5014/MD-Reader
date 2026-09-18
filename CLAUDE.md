@@ -9,7 +9,7 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 ## 技術原則
 
 - **零建置**:`extension/` 直接載入 Chrome;第三方元件用 `npm run sync` 從 node_modules 複製進 `extension/vendor/`,不從網路載入程式。
-- **更新日誌只改 `docs/changelog/CHANGELOG.md`**,再跑 `npm run sync` 複製到 `extension/CHANGELOG.md`(設定頁顯示用);`npm test` 會檢查兩份一致。
+- **更新日誌只改 `docs/changelog/CHANGELOG.md`、使用說明只改 `docs/guide/GUIDE.md`**,再跑 `npm run sync` 複製進 `extension/`(設定頁顯示用);`npm test`、`npm run release` 都會檢查是否一致。新功能要同步更新使用說明。
 - **所有使用者可調的項目都進設定頁**(PM 要求):預設值定義在 `core/settings.js` 的 `DEFAULTS`,UI 在 `pages/options.*`,存 `chrome.storage.sync`。
 - **排版引擎只有一份**:`core/` 同時給就地排版(content script)、閱讀頁(viewer)、設定頁、背景管家(importScripts)用,掛在 `globalThis.MDR`。閱讀畫面外殼(目錄、工具列)在 `core/reader.js`。
 - **一律消毒**:任何 Markdown 轉出的 HTML 都要過 `MDR.renderMarkdown`(內含 DOMPurify),不可繞過。
@@ -23,6 +23,8 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **Google Drive**:Google 已能自己排版一般 .md,Drive 按鈕定位是「看 Obsidian 語法」;原文用 `uc?export=download&id=` 由閱讀頁帶 Cookie 讀(`content/drive.js`、`MDR.driveUrl`)。
 - **主題**:system / light / dark / sepia;系統深色色票只套在 `data-mdr-theme="system"`,新主題要照這個規則加。
 - **新版本提示**:`chrome.storage.local.seenVersion`;安裝時記成目前版本,打開更新日誌時更新。
+- **連結網址一律不能帶協定開頭**:雙中括號連結當相對路徑(`javascript:` 開頭補 `./`);新增任何「由文件內容產生網址」的功能,都要加進 `test-files/xss.md`。
+- **屬性區**:`parseFrontmatter` 回傳 `{ data, strict }`;YAML 讀不懂時用寬鬆讀法並顯示提醒,不要只丟原文。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 

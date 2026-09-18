@@ -64,6 +64,7 @@ async function renderRecent(settings, fileAccess) {
 
 // ---------- 設定入口 ----------
 document.getElementById('open-settings').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };
+document.getElementById('open-guide').onclick = () => openTab(chrome.runtime.getURL('pages/options.html#guide'));
 document.getElementById('open-changelog').onclick = () => openTab(chrome.runtime.getURL('pages/options.html#changelog'));
 document.getElementById('fix-access').onclick = () => openTab(chrome.runtime.getURL('pages/options.html#permission'));
 

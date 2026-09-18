@@ -18,14 +18,15 @@
     const html = doc.documentElement;
     html.dataset.mdr = 'rendered';
     const { body, raw: frontmatter } = MDR.splitFrontmatter(text);
-    const props = frontmatter === null ? null : MDR.parseFrontmatter(frontmatter);
+    const parsed = frontmatter === null ? null : MDR.parseFrontmatter(frontmatter);
+    const props = parsed?.data;
     doc.title = MDR.titleOf(body, typeof props?.title === 'string' ? props.title : fallbackTitle);
 
     const article = doc.createElement('article');
     article.className = 'mdr-body';
     article.innerHTML = MDR.renderMarkdown(body);
     MDR.enhance(article, settings);
-    const propsPanel = frontmatter === null ? null : MDR.buildProperties(props, frontmatter);
+    const propsPanel = frontmatter === null ? null : MDR.buildProperties(parsed, frontmatter);
     if (propsPanel) article.prepend(propsPanel);
 
     const raw = doc.createElement('pre');

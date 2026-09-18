@@ -10,4 +10,8 @@
 
 <svg onload="window.__mdrXss='svg'"></svg>
 
+[[javascript:window.__mdrXss='wikilink']]
+
+![[javascript:alert(1)]]
+
 正常內容:XSS-TEST-VISIBLE

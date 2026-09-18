@@ -135,13 +135,34 @@
     const m = text.match(/^﻿?---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
     return m ? { body: text.slice(m[0].length), raw: m[1] } : { body: text, raw: null };
   }
+  // 回傳 { data, strict }:strict=false 代表格式不標準(Obsidian 也會說屬性無效),改用寬鬆讀法盡量讀出來
   function parseFrontmatter(raw) {
     try {
       const data = globalThis.jsyaml.load(raw, { schema: globalThis.jsyaml.CORE_SCHEMA }); // 不把日期轉成時間物件
-      return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
-    } catch {
-      return null;
+      if (data && typeof data === 'object' && !Array.isArray(data)) return { data, strict: true };
+    } catch { /* 交給寬鬆讀法 */ }
+    const data = parseLoose(raw);
+    return data ? { data, strict: false } : null;
+  }
+
+  // 寬鬆讀法:只認「名稱: 值」與底下的「- 項目」,值一律當文字(例如 related: [[A]], [[B]])
+  function parseLoose(raw) {
+    const data = {};
+    const unquote = (v) => v.trim().replace(/^(["'])(.*)\1$/, '$2');
+    let key = null;
+    for (const line of raw.split(/\r?\n/)) {
+      const kv = line.match(/^([^\s:#-][^:]*):(?:\s+(.*))?$/);
+      if (kv) {
+        key = kv[1].trim();
+        const v = kv[2]?.trim() || '';
+        const list = v.match(/^\[([^[].*)\]$/); // [a, b] 這種行內清單
+        data[key] = list ? list[1].split(',').map(unquote).filter(Boolean) : v ? unquote(v) : null;
+        continue;
+      }
+      const item = line.match(/^\s*-\s+(.*)$/);
+      if (item && key) data[key] = [...(Array.isArray(data[key]) ? data[key] : []), unquote(item[1])];
     }
+    return Object.keys(data).length ? data : null;
   }
 
   function syntaxPlugin(md) {

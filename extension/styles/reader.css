@@ -338,7 +338,10 @@ html[data-mdr] .mdr-prop-key { color: var(--mdr-muted); }
 html[data-mdr] .mdr-prop-value { min-width: 0; overflow-wrap: anywhere; }
 html[data-mdr] .mdr-prop-pill { display: inline-block; margin: 0 0.35em 0.3em 0; padding: 0 0.6em; border-radius: 999px; background: var(--mdr-accent-soft); color: var(--mdr-accent); }
 html[data-mdr] .mdr-prop-empty { color: var(--mdr-faint); }
+html[data-mdr] .mdr-prop-obj { display: inline-flex; flex-direction: column; }
+html[data-mdr] .mdr-prop-obj-key { margin-right: 0.4em; color: var(--mdr-muted); }
 html[data-mdr] .mdr-props-raw { grid-column: 1 / -1; margin: 0; }
+html[data-mdr] .mdr-props-note { margin-top: 0.6em; color: rgb(var(--mdr-c-orange)); font-size: 0.9em; }
 
 /* 腳註 */
 html[data-mdr] .mdr-body .footnotes { margin-top: 2.5em; color: var(--mdr-muted); font-size: 0.9em; }

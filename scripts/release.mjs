@@ -14,7 +14,9 @@ const manifest = JSON.parse(readFileSync(join(root, 'extension', 'manifest.json'
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const changelog = readFileSync(join(root, 'docs', 'changelog', 'CHANGELOG.md'), 'utf8').match(/^## v(\d+\.\d+\.\d+)/m)?.[1];
 if (manifest !== pkg || manifest !== changelog) fail(`版本號不一致:manifest ${manifest}、package ${pkg}、CHANGELOG ${changelog}`);
-if (readFileSync(join(root, 'extension', 'CHANGELOG.md'), 'utf8') !== readFileSync(join(root, 'docs', 'changelog', 'CHANGELOG.md'), 'utf8')) fail('extension/CHANGELOG.md 過期,請先 npm run sync');
+for (const [copy, source] of [['CHANGELOG.md', ['changelog', 'CHANGELOG.md']], ['GUIDE.md', ['guide', 'GUIDE.md']]]) {
+  if (readFileSync(join(root, 'extension', copy), 'utf8') !== readFileSync(join(root, 'docs', ...source), 'utf8')) fail(`extension/${copy} 過期,請先 npm run sync`);
+}
 if (run('git', ['status', '--porcelain'])) fail('還有沒存進版本的修改,請先 commit');
 const tag = `v${manifest}`;
 if (run('git', ['tag', '--list', tag])) fail(`版本標記 ${tag} 已經存在`);

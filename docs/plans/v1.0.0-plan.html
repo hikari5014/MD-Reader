@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD隨手讀 v1.0 發布總覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+<style>
+  body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: #f6f7fb; color: #1e293b; }
+  html { scroll-behavior: smooth; }
+  .card { background: #fff; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15, 23, 42, .06); }
+  .sec-title { display: flex; align-items: center; gap: .6rem; font-size: 1.45rem; font-weight: 900; }
+  .sec-num { display: inline-flex; width: 2rem; height: 2rem; border-radius: .6rem; align-items: center; justify-content: center; font-size: .95rem; color: #fff; background: #7c5cff; }
+  .nav-link.active { background: #f1edff; color: #5b3fd6; font-weight: 700; }
+  .mermaid-box svg { max-width: 100%; height: auto; }
+  @keyframes riskPulse { 0%, 100% { filter: drop-shadow(0 0 0 rgba(220, 38, 38, 0)); } 50% { filter: drop-shadow(0 0 7px rgba(220, 38, 38, .75)); } }
+  g.node.risk { animation: riskPulse 1.8s ease-in-out infinite; cursor: help; }
+  .tippy-box[data-theme~='risk'] { background: #7f1d1d; color: #fff; font-size: 13px; line-height: 1.6; }
+  .tippy-box[data-theme~='risk'] > .tippy-arrow::before { color: #7f1d1d; }
+  .shot-tab.on { background: #7c5cff; color: #fff; border-color: #7c5cff; }
+  .check-item.done { background: #ecfdf5; border-color: #6ee7b7; }
+</style>
+</head>
+<body>
+
+<header class="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div class="flex flex-wrap gap-2 text-xs font-bold">
+      <span class="px-2.5 py-1 rounded-full bg-white/20">發布總覽 v1.0.0</span>
+      <span class="px-2.5 py-1 rounded-full bg-white/20">2026-09-18</span>
+      <span class="px-2.5 py-1 rounded-full bg-emerald-300 text-emerald-950">✅ 已發布・等你實機驗收</span>
+    </div>
+    <h1 class="mt-4 text-3xl sm:text-4xl font-black">📖 MD隨手讀 v1.0 — 做完了什麼、還差你哪幾步</h1>
+    <p class="mt-3 text-white/90 max-w-3xl leading-relaxed">從 v0.1.0 計劃書出發,一天內走完 6 個版本。這一頁用圖說明最後的樣子、原計劃和實際的差別,以及<b>只有你能做的實機驗收</b>(可勾選,會記住)。</p>
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl">
+      <div class="rounded-xl bg-white/15 p-4"><div class="text-3xl font-black" id="stat-tests">73</div><div class="text-sm text-white/80">項自動化測試全過</div></div>
+      <div class="rounded-xl bg-white/15 p-4"><div class="text-3xl font-black" id="stat-notes">627</div><div class="text-sm text-white/80">篇真實筆記驗收</div></div>
+      <div class="rounded-xl bg-white/15 p-4"><div class="text-3xl font-black">5</div><div class="text-sm text-white/80">種打開方式</div></div>
+      <div class="rounded-xl bg-white/15 p-4"><div class="text-3xl font-black">6</div><div class="text-sm text-white/80">個版本(v0.2 → v1.0)</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:flex lg:gap-8">
+  <nav class="hidden lg:block w-52 shrink-0">
+    <div class="sticky top-6 card p-3 text-sm">
+      <div class="px-2 pb-2 text-xs font-bold text-slate-400">導覽目錄</div>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#features">1. 功能總覽</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#arch">2. 整體架構</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#flow">3. 使用流程+風險</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#modules">4. 模組關係</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#screens">5. 畫面導覽</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#timeline">6. 版本時程</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#plan-vs-real">7. 計劃 vs 實際</a>
+      <a class="nav-link block px-3 py-1.5 rounded-lg hover:bg-slate-100" href="#confirm">8. 你的驗收</a>
+    </div>
+  </nav>
+
+  <main class="flex-1 min-w-0 space-y-10">
+
+    <section id="features" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">1</span>功能總覽</h2>
+      <p class="mt-2 text-slate-600">綠色 = 自動化測試已驗證;黃色 = 需要你用自己的帳號或 Windows 電腦實測。</p>
+      <div class="mt-5 grid md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div class="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4"><div class="text-2xl">💻</div><div class="font-black mt-1">電腦裡的 .md</div><p class="text-sm text-slate-600 mt-1">拖進 Chrome 就排版;中文檔名、相對路徑圖片都行</p><div class="text-xs font-bold text-emerald-700 mt-2">✅ Mac 自動驗證</div></div>
+        <div class="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4"><div class="text-2xl">🌐</div><div class="font-black mt-1">網路上的 .md</div><p class="text-sm text-slate-600 mt-1">自動排版;強制下載改成直接顯示;沒標編碼的中文不亂碼</p><div class="text-xs font-bold text-emerald-700 mt-2">✅ 自動驗證</div></div>
+        <div class="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4"><div class="text-2xl">🖱️</div><div class="font-black mt-1">右鍵・小視窗</div><p class="text-sm text-slate-600 mt-1">.md 連結右鍵開啟;小視窗開檔、貼上文字或網址、最近開過</p><div class="text-xs font-bold text-emerald-700 mt-2">✅ 自動驗證</div></div>
+        <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4"><div class="text-2xl">⬇️</div><div class="font-black mt-1">下載的 .md</div><p class="text-sm text-slate-600 mt-1">跳通知 / 自動開 / 不處理;Windows 把本機檔當下載時自動開原檔</p><div class="text-xs font-bold text-amber-700 mt-2">🟡 通知要看你的系統設定;Windows 待實測</div></div>
+        <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4"><div class="text-2xl">☁️</div><div class="font-black mt-1">Google Drive</div><p class="text-sm text-slate-600 mt-1">預覽頁、Google 文件、列表選取 .md 時出現按鈕</p><div class="text-xs font-bold text-amber-700 mt-2">🟡 下載路線已連真 Google 驗證;登入後的頁面待你實測</div></div>
+        <div class="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4"><div class="text-2xl">🔗</div><div class="font-black mt-1">Obsidian 語法</div><p class="text-sm text-slate-600 mt-1">屬性表、雙中括號連結、提示框、螢光筆、標籤、嵌入、腳註、流程圖、公式</p><div class="text-xs font-bold text-emerald-700 mt-2">✅ 你的知識庫 <span id="vault-count">627</span> 篇全部驗收</div></div>
+      </div>
+    </section>
+
+    <section id="arch" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">2</span>整體架構(實際完成的樣子)</h2>
+      <p class="mt-2 text-slate-600">和 v0.1 計劃書一樣的核心:<b>所有入口共用同一顆排版引擎、同一個閱讀畫面</b>。</p>
+      <div class="mermaid-box mt-4 overflow-x-auto" id="d-arch"></div>
+    </section>
+
+    <section id="flow" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">3</span>使用流程 + 風險預警</h2>
+      <p class="mt-2 text-slate-600">含失敗與取消的路線。<b class="text-rose-600">紅色閃爍 = 需要你實測或留意的地方,滑鼠移上去看說明。</b></p>
+      <div class="mermaid-box mt-4 overflow-x-auto" id="d-flow"></div>
+    </section>
+
+    <section id="modules" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">4</span>功能模組關係</h2>
+      <p class="mt-2 text-slate-600">箭頭 = 誰會叫誰做事。藍 = 入口、紫 = 排版引擎、綠 = 畫面、黃 = 設定與儲存。</p>
+      <div class="mermaid-box mt-4 overflow-x-auto" id="d-mod"></div>
+    </section>
+
+    <section id="screens" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">5</span>畫面導覽(點頁籤切換)</h2>
+      <p class="mt-2 text-slate-600">以下都是自動化測試實際截下來的畫面(用 <code>test-files/</code> 的測試檔)。</p>
+      <div class="mt-4 flex flex-wrap gap-2" id="shot-tabs"></div>
+      <p class="mt-3 text-sm text-slate-600" id="shot-caption"></p>
+      <div class="mt-3 rounded-xl border overflow-hidden bg-slate-100 flex justify-center"><img id="shot-img" class="max-w-full" alt=""></div>
+    </section>
+
+    <section id="timeline" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">6</span>版本時程</h2>
+      <p class="mt-2 text-slate-600">每一版都「實作 → 自動化測試 → 真實筆記驗收 → 存版本 → 發布安裝包」。長條 = 自動化測試項目數。</p>
+      <div class="mt-4 grid lg:grid-cols-5 gap-5">
+        <div class="lg:col-span-2"><canvas id="chart-tests" height="260"></canvas></div>
+        <ol class="lg:col-span-3 relative border-l-2 border-violet-200 ml-2 space-y-4" id="versions"></ol>
+      </div>
+    </section>
+
+    <section id="plan-vs-real" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">7</span>原計劃 vs 實際(並排對照)</h2>
+      <p class="mt-2 text-slate-600">做的過程中發現新資訊時的調整,以及背後的理由。</p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-slate-500 border-b"><th class="py-2 pr-3 w-44">項目</th><th class="py-2 pr-3">v0.1 計劃</th><th class="py-2 pr-3">實際</th><th class="py-2">為什麼</th></tr></thead>
+          <tbody class="divide-y">
+            <tr><td class="py-3 pr-3 font-bold">Google Drive</td><td class="pr-3">在 Drive 預覽裡把純文字換成排版</td><td class="pr-3 text-violet-700 font-bold">改成「用 MD隨手讀 開啟」按鈕,專看 Obsidian 語法</td><td>做到一半發現 <b>Google 已經能自己排版一般 .md</b>,不需要再搶;Google 看不懂的是 Obsidian 語法</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">小視窗</td><td class="pr-3">選檔、拖放區、貼上</td><td class="pr-3 text-violet-700 font-bold">拖放拿掉、選檔改開分頁、貼上框自動判斷文字或網址</td><td>Chrome 小視窗一失去焦點就關閉,從 Finder 拖檔或打開選檔視窗都會讓它先關掉</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">版本號</td><td class="pr-3">v0.4 Drive、v0.5 Obsidian</td><td class="pr-3 text-violet-700 font-bold">v0.4 Obsidian、v0.5 Drive</td><td>先做不用等實驗的 Obsidian;版本號代表做出來的順序</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">下載設定</td><td class="pr-3">v0.3 才做</td><td class="pr-3 text-violet-700 font-bold">提前到 v0.2</td><td>你要求加設定頁,下載行為是第一個需要設定的項目</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">新增</td><td class="pr-3">—</td><td class="pr-3 text-violet-700 font-bold">插件內更新日誌、使用說明、新版本小紅點、不標準屬性容錯</td><td>你要求在插件裡看更新日誌;v1.0 補上使用說明</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">不做</td><td class="pr-3">構想中</td><td class="pr-3 text-slate-500 font-bold">檔案改了自動更新、嵌入筆記展開、右鍵排版選取文字</td><td>前兩項 Chrome 不讓本機頁面讀其他本機檔;第三項 Chrome 給的選取文字會丟掉換行</td></tr>
+            <tr><td class="py-3 pr-3 font-bold">安全</td><td class="pr-3">DOMPurify 消毒</td><td class="pr-3 text-violet-700 font-bold">消毒 + 流程圖 SVG 也消毒 + 雙中括號連結禁止 javascript: 網址</td><td>v1.0 自我檢查找到並修掉一個連結漏洞,已加進惡意範例檔永久測試</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="confirm" class="card p-6">
+      <h2 class="sec-title"><span class="sec-num">8</span>你的驗收(可勾選,會記住)</h2>
+      <p class="mt-2 text-slate-600">這些只有你能做。詳細步驟在 <code>docs/verification/v1.0.0-checklist.md</code>(把它拖進 Chrome 就能用 MD隨手讀 閱讀)。</p>
+      <div class="mt-3 flex items-center gap-3">
+        <div class="flex-1 h-2.5 rounded-full bg-slate-200 overflow-hidden"><div id="c-bar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div></div>
+        <div id="c-count" class="text-sm font-bold text-slate-600"></div>
+      </div>
+      <div class="mt-4 space-y-2" id="checks"></div>
+      <button id="copy-checks" class="mt-4 px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">📋 複製驗收結果(貼回給 Claude)</button>
+    </section>
+
+    <footer class="text-center text-xs text-slate-400 pb-10">MD隨手讀 v1.0.0 發布總覽 ・ 2026-09-18 ・ 勾選狀態記在這台電腦的瀏覽器裡</footer>
+  </main>
+</div>
+
+<script type="text/plain" id="src-arch">
+flowchart LR
+  subgraph IN["📥 五個入口"]
+    E1["💻 本機 .md<br/>拖進 Chrome"]
+    E2["🌐 網路 .md<br/>直接點開"]
+    E3["🖱️ 右鍵・小視窗<br/>連結、選檔、貼上"]
+    E4["⬇️ 下載<br/>通知・自動開"]
+    E5["☁️ Google Drive<br/>開啟按鈕"]
+  end
+  subgraph CORE["⚙️ 排版引擎 core/"]
+    P["轉換 markdown-it<br/>+ Obsidian 語法 + 公式"]
+    S["🛡️ 消毒 DOMPurify"]
+    X["加工:提示框・連結・屬性表<br/>流程圖(需要才載入)"]
+  end
+  subgraph UI["📖 閱讀畫面"]
+    V["目錄・工具列・進度條<br/>四種主題"]
+  end
+  subgraph ST["🗂️ 設定與紀錄"]
+    C["設定頁(跨電腦同步)"]
+    R["最近開過(只在本機)"]
+  end
+  E1 --> P
+  E2 --> P
+  E3 --> P
+  E4 --> P
+  E5 --> P
+  P --> S --> X --> V
+  C -.-> V
+  V -.-> R
+  classDef entry fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,stroke-width:2px
+  classDef core fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-width:2px
+  classDef ui fill:#dcfce7,stroke:#16a34a,color:#14532d,stroke-width:2px
+  classDef st fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-width:2px
+  class E1,E2,E3,E4,E5 entry
+  class P,S,X core
+  class V ui
+  class C,R st
+</script>
+
+<script type="text/plain" id="src-flow">
+flowchart TD
+  A(["👤 遇到一份 .md"]) --> B{"從哪裡來?"}
+  B -->|"💻 本機"| L1{"開了檔案權限?"}
+  L1 -->|"否"| L2["繁中引導頁<br/>3 步驟開啟"]
+  L2 -->|"略過"| L3["維持純文字"]
+  L2 -->|"完成"| R
+  L1 -->|"是"| W0{"Chrome 當成下載?<br/>(少數 Windows)"}
+  W0 -->|"否"| R
+  W0 -->|"是"| W1["自動用閱讀頁開原檔"]
+  W1 --> R
+  B -->|"🌐 網路"| N1{"是 .md 且不是網頁?"}
+  N1 -->|"是"| R
+  N1 -->|"否"| N2["不動作<br/>(GitHub 檔案頁等)"]
+  B -->|"⬇️ 下載"| D1{"下載設定"}
+  D1 -->|"跳通知"| D2["通知 → 點了才開"]
+  D1 -->|"自動開"| R
+  D1 -->|"不處理"| D3["只存檔"]
+  D2 --> R
+  B -->|"☁️ Drive"| G1["右下角按鈕"]
+  G1 --> G2{"讀得到原文?"}
+  G2 -->|"是"| R
+  G2 -->|"否:沒登入/沒權限"| G3["說明原因<br/>建議改用下載"]
+  R["⚙️ 排版引擎"] --> V(["📖 閱讀畫面"])
+  classDef risk fill:#fee2e2,stroke:#dc2626,color:#7f1d1d,stroke-width:3px
+  classDef fail fill:#f1f5f9,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+  classDef ok fill:#dcfce7,stroke:#16a34a,color:#14532d,stroke-width:2px
+  class L2,W1,D2,G1 risk
+  class L3,N2,D3,G3 fail
+  class V ok
+</script>
+
+<script type="text/plain" id="src-mod">
+flowchart TB
+  M["📜 manifest.json"]
+  BG["🧠 background.js<br/>右鍵・下載・Drive 開檔・延遲載入"]
+  CS1["🧷 content/inplace.js<br/>本機/網路就地排版"]
+  CS2["☁️ content/drive.js<br/>Drive 按鈕"]
+  subgraph ENGINE["⚙️ core/"]
+    DET["detect 辨識"]
+    SYN["syntax 解析外掛"]
+    REN["render 轉換+消毒"]
+    OBS["obsidian 加工"]
+    DIA["diagram 流程圖"]
+    RD["reader 閱讀外殼"]
+    SET["settings 設定"]
+    LIB["library 最近・暫存"]
+  end
+  VW["📖 viewer 閱讀頁"]
+  PU["🪟 popup 小視窗"]
+  OP["⚙️ options 設定頁<br/>含使用說明・更新日誌"]
+  OPEN["📂 open 開啟檔案"]
+  M --> BG
+  M --> CS1
+  M --> CS2
+  CS1 --> RD
+  VW --> RD
+  RD --> REN
+  REN --> SYN
+  REN --> OBS
+  RD --> DIA
+  RD --> SET
+  CS2 -->|"開檔"| BG
+  BG -->|"開分頁"| VW
+  PU --> OPEN
+  OPEN --> VW
+  PU --> LIB
+  OP --> SET
+  VW --> LIB
+  classDef entry fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,stroke-width:2px
+  classDef core fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-width:2px
+  classDef ui fill:#dcfce7,stroke:#16a34a,color:#14532d,stroke-width:2px
+  classDef st fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-width:2px
+  class BG,CS1,CS2 entry
+  class DET,SYN,REN,OBS,DIA,RD core
+  class VW,PU,OP,OPEN ui
+  class M,SET,LIB st
+</script>
+
+<script>
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+
+// 導覽高亮
+const navLinks = [...document.querySelectorAll('.nav-link')];
+const secObs = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) navLinks.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('main section').forEach((s) => secObs.observe(s));
+
+// 畫面導覽
+const SHOTS = [
+  ['render-toc', '閱讀畫面', '左側目錄(點了跳轉、標出讀到哪)、右上工具列:目錄・主題・原始碼・列印・設定'],
+  ['render-dark', '深色', '深色主題,程式碼上色跟著換'],
+  ['render-sepia', '護眼', '米黃底色,長時間閱讀不刺眼'],
+  ['obsidian-top', 'Obsidian 筆記', '屬性表、雙中括號連結、螢光筆、標籤、提示框'],
+  ['mermaid', '流程圖', 'Mermaid 流程圖、循序圖;語法錯誤時顯示說明不會整頁壞'],
+  ['math', '數學公式', 'KaTeX 公式;「$5、$10」這種價錢不會被誤判'],
+  ['popup', '小視窗', '點工具列圖示:開檔、貼上文字或網址、最近開過'],
+  ['options-guide', '使用說明', '設定頁裡的使用說明,用 MD隨手讀 自己排版'],
+  ['options-changelog', '更新日誌', '設定頁裡的更新日誌,目前版本有紫色標籤'],
+];
+const tabs = document.getElementById('shot-tabs');
+function showShot(i) {
+  const [file, , caption] = SHOTS[i];
+  document.getElementById('shot-img').src = `assets/v1.0.0/${file}.png`;
+  document.getElementById('shot-caption').textContent = caption;
+  tabs.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', i === j));
+}
+SHOTS.forEach(([, label], i) => {
+  const b = document.createElement('button');
+  b.className = 'shot-tab px-3 py-1.5 rounded-lg border text-sm font-bold';
+  b.textContent = label;
+  b.onclick = () => showShot(i);
+  tabs.append(b);
+});
+showShot(0);
+
+// 版本時程
+const VERSIONS = [
+  ['v0.1.0', '第 0 期技術驗證', '最小插件;本機、網路、下載三條路走通', 14, ''],
+  ['v0.2.0', '正式閱讀畫面・設定頁・更新日誌', '目錄、工具列、程式碼上色、勾選框;設定頁;插件內更新日誌', 33, 'bd96600'],
+  ['v0.3.0', '右鍵・小視窗・最近開過', '右鍵開 .md 連結;小視窗開檔、貼上;最近開過', 45, 'b4343c1'],
+  ['v0.4.0', 'Obsidian 語法・流程圖・公式', '屬性表、雙中括號連結、提示框…;Mermaid、KaTeX;真實筆記驗收', 57, '6d55413'],
+  ['v0.5.0', 'Google Drive', 'Drive 開啟按鈕;讀不到時說明原因', 66, '9bfd3fb'],
+  ['v0.6.0', '打磨', '護眼主題、進度條、列印、新版本提示、Windows 後援', 71, '55fd99b'],
+  ['v1.0.0', '正式版', '安全修正、使用說明、不標準屬性容錯、全庫驗收', 73, '本版'],
+];
+document.getElementById('versions').innerHTML = VERSIONS.map(([v, name, desc, tests, hash]) => `
+  <li class="ml-5">
+    <span class="absolute -left-[9px] mt-1.5 w-4 h-4 rounded-full ${v === 'v1.0.0' ? 'bg-emerald-500' : 'bg-violet-500'} ring-4 ring-white"></span>
+    <div class="flex flex-wrap items-baseline gap-2"><span class="font-black">${v}</span><span class="font-bold text-slate-700">${name}</span><span class="text-xs text-slate-400">${hash ? `commit ${hash}` : '併入 v0.2.0'} ・ ${tests} 項測試</span></div>
+    <p class="text-sm text-slate-600">${desc}</p>
+  </li>`).join('');
+new Chart(document.getElementById('chart-tests'), {
+  type: 'bar',
+  data: { labels: VERSIONS.map((v) => v[0]), datasets: [{ label: '自動化測試項目', data: VERSIONS.map((v) => v[3]), backgroundColor: VERSIONS.map((v) => (v[0] === 'v1.0.0' ? '#10b981' : '#8b5cf6')), borderRadius: 6 }] },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+});
+
+// 驗收清單
+const CHECKS = [
+  ['install', '安裝 v1.0:chrome://extensions 按 🔄 重新載入(或解壓 dist/md-suishoudu-v1.0.0.zip 載入)'],
+  ['access', '設定 → 🔐 檔案權限 顯示綠色「已開啟」'],
+  ['vault', '設定 → 📖 閱讀 → Obsidian 保險庫名稱 填 LLM Wiki,點筆記裡的 [[連結]] 能開 Obsidian'],
+  ['notes', '拖幾篇自己的知識庫筆記進 Chrome,屬性表、提示框、連結都正常'],
+  ['drive', '用自己的 Google 帳號:Drive 選取 .md → 右下角按鈕 → 排版成功'],
+  ['notify', '在 Drive 下載一份 .md → 右上角跳通知 → 點了能開(Mac 需先允許 Chrome 通知)'],
+  ['windows', 'Windows 電腦:把 .md 拖進 Chrome,能排版(或自動開閱讀頁)'],
+  ['yaml', '修好知識庫 1 篇屬性格式不標準的筆記(Comparing_the_Information_Content_of_Two.md,見 v1.0.0 驗收清單第 6 節)'],
+];
+let state = lsGet('mdr-v100-checks') || {};
+function drawChecks() {
+  document.getElementById('checks').innerHTML = CHECKS.map(([id, text]) => `
+    <label class="check-item flex items-start gap-3 rounded-xl border p-3 cursor-pointer ${state[id] ? 'done' : ''}">
+      <input type="checkbox" data-id="${id}" class="mt-1 w-5 h-5 accent-emerald-600" ${state[id] ? 'checked' : ''}>
+      <span class="text-sm leading-relaxed">${text}</span>
+    </label>`).join('');
+  const n = CHECKS.filter(([id]) => state[id]).length;
+  document.getElementById('c-count').textContent = `${n} / ${CHECKS.length}`;
+  document.getElementById('c-bar').style.width = `${(n / CHECKS.length) * 100}%`;
+  document.querySelectorAll('#checks input').forEach((box) => box.onchange = () => { state[box.dataset.id] = box.checked; lsSet('mdr-v100-checks', state); drawChecks(); });
+}
+drawChecks();
+document.getElementById('copy-checks').onclick = async function () {
+  const text = '【MD隨手讀 v1.0 驗收結果】\n' + CHECKS.map(([id, t]) => `${state[id] ? '✅' : '⬜'} ${t}`).join('\n');
+  try { await navigator.clipboard.writeText(text); this.textContent = '✅ 已複製'; } catch (e) { prompt('請手動複製:', text); }
+  setTimeout(() => { this.textContent = '📋 複製驗收結果(貼回給 Claude)'; }, 2000);
+};
+
+// Mermaid(含風險說明)
+const RISK_TIPS = {
+  L2: '🔐 <b>檔案權限</b><br>Chrome 規定只能由你親手打開「允許存取檔案網址」。設定頁「檔案權限」會顯示目前狀態。',
+  W1: '🪟 <b>Windows 後援</b><br>少數 Windows 電腦會讓 Chrome 把本機 .md 當成下載。已寫好自動改用閱讀頁開原檔,但要你在 Windows 實測。',
+  D2: '🔔 <b>系統通知</b><br>Mac 要到「系統設定 → 通知 → Google Chrome」允許通知,否則看不到。',
+  G1: '☁️ <b>Google Drive</b><br>下載原文的路線已連真正的 Google 驗證;但登入後的 Drive 頁面只能你用自己的帳號實測。Google 改版時按鈕可能要調整。',
+};
+mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'base', themeVariables: { fontFamily: 'Noto Sans TC, sans-serif', fontSize: '14px', primaryColor: '#f1edff', primaryBorderColor: '#7c5cff', lineColor: '#64748b', clusterBkg: '#f8fafc', clusterBorder: '#cbd5e1' }, flowchart: { htmlLabels: true, curve: 'basis', padding: 12 } });
+(async () => {
+  for (const [s, d] of [['src-arch', 'd-arch'], ['src-flow', 'd-flow'], ['src-mod', 'd-mod']]) {
+    const box = document.getElementById(d);
+    try {
+      const { svg } = await mermaid.render('svg-' + d, document.getElementById(s).textContent.trim());
+      box.innerHTML = svg;
+      box.querySelectorAll('g.node.risk').forEach((g) => {
+        const m = g.id.match(/flowchart-([A-Za-z0-9_]+)-\d+$/);
+        if (m && RISK_TIPS[m[1]]) tippy(g, { content: RISK_TIPS[m[1]], allowHTML: true, theme: 'risk', maxWidth: 320, placement: 'right' });
+      });
+    } catch (err) { box.textContent = '圖表載入失敗:' + err.message; }
+  }
+})();
+</script>
+</body>
+</html>

@@ -13,6 +13,9 @@ related:
   - "[[toc-long|長文件]]"
 source: https://obsidian.md
 empty:
+children:
+  - page: "[[sample-zh]]"
+    note: 巢狀屬性
 ---
 
 # Obsidian 語法大全

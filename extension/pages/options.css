@@ -83,8 +83,10 @@ html[data-mdr-theme="dark"] .opt-status.is-ok { background: #14301f; color: #7ee
 .opt-plain:hover { border-color: #e5484d; color: #e5484d; }
 .opt-primary { padding: 9px 18px; border: 0; border-radius: 8px; background: var(--mdr-accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 
-/* 更新日誌 */
-.opt-changelog { margin-top: 20px; font-size: 15px; line-height: 1.75; }
+/* 更新日誌、使用說明(用插件自己的排版) */
+.opt-changelog, .opt-doc { margin-top: 20px; font-size: 15px; line-height: 1.75; }
+.opt-doc { margin-top: 0; }
+.opt-doc h1 { font-size: 22px; margin: 0 0 16px; }
 .opt-changelog h1 { display: none; } /* 頁面已有「更新日誌」標題 */
 .opt-changelog h2 { margin-top: 1.6em; padding-top: 1.2em; border-top: 1px solid var(--mdr-line); font-size: 1.3em; }
 .opt-changelog h2:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }

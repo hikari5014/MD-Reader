@@ -80,7 +80,8 @@ async function inspect(url, shot) {
       zhOk: document.body.innerText.includes('MDR-ZH-OK-繁中正常'),
       cssApplied: getComputedStyle(document.querySelector('.mdr-page') || document.body).maxWidth === '760px',
       xss: window.__mdrXss || null,
-      dangerous: document.querySelectorAll('.mdr-body script, .mdr-body iframe, .mdr-body [onerror], .mdr-body [onload], .mdr-body a[href^="javascript:"]').length,
+      dangerous: document.querySelectorAll('.mdr-body script, .mdr-body iframe, .mdr-body [onerror], .mdr-body [onload]').length
+        + [...document.querySelectorAll('.mdr-body a[href], .mdr-body img[src]')].filter((el) => /^javascript:/i.test(el.href || el.src)).length,
     }));
   } finally {
     await page.close();
@@ -247,10 +248,11 @@ await check('5 閱讀畫面', '⚙️ 按鈕打開設定頁', async () => {
 });
 
 // ========== 6 設定頁與更新日誌(v0.2)==========
-await check('6 設定頁', '更新日誌內容與 docs 版本一致', async () => {
+await check('6 設定頁', '更新日誌、使用說明內容與 docs 版本一致', async () => {
   const a = readFileSync(join(ROOT, 'docs', 'changelog', 'CHANGELOG.md'), 'utf8');
   const b = readFileSync(join(EXT, 'CHANGELOG.md'), 'utf8');
   assert(a === b, 'extension/CHANGELOG.md 過期了,請跑 npm run sync');
+  assert(readFileSync(join(ROOT, 'docs', 'guide', 'GUIDE.md'), 'utf8') === readFileSync(join(EXT, 'GUIDE.md'), 'utf8'), 'extension/GUIDE.md 過期了,請跑 npm run sync');
   assert(a.includes(`## v${VERSION}`), `CHANGELOG 沒有 v${VERSION} 的條目`);
   return `含 v${VERSION}`;
 });
@@ -273,6 +275,15 @@ await check('6 設定頁', '更新日誌分頁:排版顯示,目前版本有標�
   await page.close();
   assert(r.versions.length >= 2 && r.badge?.includes(`v${VERSION}`), JSON.stringify(r));
   return `${r.versions.join('、')}(${VERSION} 標記為目前版本)`;
+});
+await check('6 設定頁', '使用說明分頁:排版顯示(表格、提示框)', async () => {
+  const page = await open(`${OPTIONS_URL}#guide`, 1200);
+  await page.waitForSelector('#guide h2');
+  await page.screenshot({ path: join(OUTPUT, 'options-guide.png') });
+  const r = await page.evaluate(() => ({ h2: document.querySelectorAll('#guide h2').length, tables: document.querySelectorAll('#guide table').length, callouts: document.querySelectorAll('#guide .callout').length }));
+  await page.close();
+  assert(r.h2 >= 7 && r.tables >= 3 && r.callouts === 2, JSON.stringify(r));
+  return `${r.h2} 個段落、${r.tables} 張表、${r.callouts} 個提示框`;
 });
 await check('6 設定頁', '在設定頁切深色 → 已開著的閱讀分頁立刻變深色', async () => {
   const reader = await open(fileUrl('sample-zh.md'));
@@ -481,13 +492,32 @@ await check('8 Obsidian', '屬性表', async () => {
       related: [...row('related').querySelectorAll('a.internal-link')].map((a) => a.getAttribute('href')),
       source: row('source').querySelector('a')?.href,
       empty: row('empty').textContent,
+      nested: [...row('children').querySelectorAll('a.internal-link')].map((a) => a.getAttribute('href')).join(),
+      nestedRaw: row('children').textContent.includes('[['),
       title: document.title,
     };
   });
   await page.close();
-  assert(r.first && r.keys === 10 && r.tags.join() === '測試,obsidian' && r.date === '2026-09-18' && r.done === true
+  assert(r.first && r.keys === 11 && r.nested === 'sample-zh.md' && !r.nestedRaw && r.tags.join() === '測試,obsidian' && r.date === '2026-09-18' && r.done === true
     && r.related.join() === 'sample-zh.md,toc-long.md' && r.source === 'https://obsidian.md/' && r.empty === '—' && r.title === 'Obsidian 語法大全', JSON.stringify(r));
-  return '10 個屬性:清單、日期、勾選、連結、空值都正確';
+  return '11 個屬性:清單、日期、勾選、連結、空值、巢狀都正確';
+});
+await check('8 Obsidian', '屬性格式不標準時盡量讀出來並提醒', async () => {
+  const page = await open(fileUrl('obsidian-loose-props.md'));
+  const r = await page.evaluate(() => {
+    const box = document.querySelector('.mdr-props');
+    const row = (k) => [...box.querySelectorAll('.mdr-prop-key')].find((e) => e.textContent === k)?.nextElementSibling;
+    return {
+      raw: !!box.querySelector('.mdr-props-raw'),
+      note: !!box.querySelector('.mdr-props-note'),
+      title: row('title')?.textContent,
+      tags: [...(row('tags')?.querySelectorAll('.mdr-prop-pill') || [])].map((p) => p.textContent),
+      related: [...(row('related')?.querySelectorAll('a.internal-link') || [])].map((a) => a.getAttribute('href')),
+    };
+  });
+  await page.close();
+  assert(!r.raw && r.note && r.title === '屬性格式不標準的筆記' && r.tags.join() === '論文,測試' && r.related.join() === 'sample-zh.md,toc-long.md', JSON.stringify(r));
+  return '讀出 4 個屬性(含 2 個連結)+ 格式提醒';
 });
 await check('8 Obsidian', '雙中括號連結:同資料夾、段落、區塊', async () => {
   const page = await open(fileUrl('obsidian-note.md'));

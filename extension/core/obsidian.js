@@ -121,7 +121,11 @@
       const anchor = sub ? `#${sub.startsWith('^') ? encodeURIComponent(sub) : encodeURIComponent(MDR.slugify(sub))}` : '';
       if (!page) a.href = anchor || '#';
       else if (vault) a.href = `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent(page)}`;
-      else a.href = encodeURI(/\.[a-z0-9]{1,5}$/i.test(page) ? page : `${page}.md`) + anchor;
+      else {
+        // 一律當成相對路徑:筆記名稱長得像「javascript:…」也不能變成可執行的網址
+        const file = /\.[a-z0-9]{1,5}$/i.test(page) ? page : `${page}.md`;
+        a.href = (/^[a-z][a-z0-9+.-]*:/i.test(file) ? './' : '') + encodeURI(file) + anchor;
+      }
     });
   }
 
@@ -171,7 +175,19 @@
       box.checked = value;
       return box;
     }
-    if (typeof value === 'object') return document.createTextNode(JSON.stringify(value));
+    if (typeof value === 'object') { // 巢狀屬性:排成「名稱:值」,裡面的 [[連結]] 照樣能點
+      const obj = document.createElement('span');
+      obj.className = 'mdr-prop-obj';
+      for (const [k, v] of Object.entries(value)) {
+        const row = document.createElement('span');
+        const key = document.createElement('span');
+        key.className = 'mdr-prop-obj-key';
+        key.textContent = `${k}:`;
+        row.append(key, valueNode(v));
+        obj.append(row);
+      }
+      return obj;
+    }
     const s = String(value);
     if (/^https?:\/\/\S+$/.test(s)) {
       const a = document.createElement('a');
@@ -197,7 +213,9 @@
     return frag;
   }
 
-  function buildProperties(data, raw) {
+  // parsed:parseFrontmatter 的結果({ data, strict })或 null(完全讀不懂)
+  function buildProperties(parsed, raw) {
+    const data = parsed?.data;
     const box = document.createElement('details');
     box.className = 'mdr-props';
     box.open = true;
@@ -223,6 +241,12 @@
       grid.append(pre);
     }
     box.append(grid);
+    if (parsed && !parsed.strict) {
+      const note = document.createElement('div');
+      note.className = 'mdr-props-note';
+      note.textContent = '⚠️ 屬性格式不標準(Obsidian 會顯示「屬性無效」),已盡量讀出來。常見原因:同一行放了好幾個雙中括號連結,要改成一行一個的清單,或整串加上引號';
+      box.append(note);
+    }
     return box;
   }
 

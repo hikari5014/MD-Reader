@@ -17,6 +17,7 @@ function showTab() {
     loadChangelog();
     MDR.markUpdateSeen();
   }
+  if (tab === 'guide') loadGuide();
   if (tab === 'permission') refreshFileAccess();
 }
 addEventListener('hashchange', showTab);
@@ -104,6 +105,21 @@ async function loadChangelog() {
   } catch (err) {
     box.textContent = `讀不到更新日誌:${err.message}`;
     changelogLoaded = false;
+  }
+}
+
+// ---------- 使用說明(GUIDE.md)----------
+let guideLoaded = false;
+async function loadGuide() {
+  if (guideLoaded) return;
+  guideLoaded = true;
+  const box = document.getElementById('guide');
+  try {
+    box.innerHTML = MDR.renderMarkdown(await (await fetch(chrome.runtime.getURL('GUIDE.md'))).text());
+    MDR.enhance(box);
+  } catch (err) {
+    box.textContent = `讀不到使用說明:${err.message}`;
+    guideLoaded = false;
   }
 }
 

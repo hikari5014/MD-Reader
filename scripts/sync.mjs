@@ -1,6 +1,6 @@
 // 把插件需要、但來源在別處的檔案複製進 extension/:
 //   1. 第三方元件(Manifest V3 不允許從網路載入程式,要打包在插件裡)
-//   2. 更新日誌 docs/changelog/CHANGELOG.md → extension/CHANGELOG.md(設定頁顯示用)
+//   2. 更新日誌、使用說明 docs/ → extension/(設定頁顯示用)
 // 用法:npm run sync   (改了 CHANGELOG 或升級元件後都要跑)
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -45,4 +45,5 @@ writeFileSync(join(vendor, 'VERSIONS.md'),
 console.log(rows.join('\n'));
 
 copyFileSync(join(root, 'docs', 'changelog', 'CHANGELOG.md'), join(root, 'extension', 'CHANGELOG.md'));
-console.log('CHANGELOG.md → extension/CHANGELOG.md');
+copyFileSync(join(root, 'docs', 'guide', 'GUIDE.md'), join(root, 'extension', 'GUIDE.md'));
+console.log('CHANGELOG.md、GUIDE.md → extension/');
