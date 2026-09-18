@@ -16,12 +16,16 @@
     const settings = await MDR.loadSettings();
     const html = doc.documentElement;
     html.dataset.mdr = 'rendered';
-    doc.title = MDR.titleOf(text, fallbackTitle);
+    const { body, raw: frontmatter } = MDR.splitFrontmatter(text);
+    const props = frontmatter === null ? null : MDR.parseFrontmatter(frontmatter);
+    doc.title = MDR.titleOf(body, typeof props?.title === 'string' ? props.title : fallbackTitle);
 
     const article = doc.createElement('article');
     article.className = 'mdr-body';
-    article.innerHTML = MDR.renderMarkdown(text);
-    MDR.enhance(article);
+    article.innerHTML = MDR.renderMarkdown(body);
+    MDR.enhance(article, settings);
+    const propsPanel = frontmatter === null ? null : MDR.buildProperties(props, frontmatter);
+    if (propsPanel) article.prepend(propsPanel);
 
     const raw = doc.createElement('pre');
     raw.className = 'mdr-raw';
@@ -40,17 +44,28 @@
     doc.body.replaceChildren(shell);
 
     let current = settings;
+    let diagramsDark = null;
     const wide = globalThis.matchMedia(WIDE);
+    const systemDark = globalThis.matchMedia('(prefers-color-scheme: dark)');
     const apply = (s) => {
       current = s;
       MDR.applySettings(doc, s);
       shell.dataset.toc = toc && s.toc && wide.matches ? 'open' : 'closed';
       const btn = shell.querySelector('[data-action="theme"]');
       btn.title = `主題:${THEME_LABEL[s.theme]}(點一下切換)`;
+      if (propsPanel) propsPanel.hidden = !s.showProperties;
+      MDR.linkWikilinks(article, s.obsidianVault);
+      // 流程圖的配色跟著深淺色走,變了才重畫
+      const dark = s.theme === 'dark' || (s.theme === 'system' && systemDark.matches);
+      if (dark !== diagramsDark) {
+        diagramsDark = dark;
+        MDR.renderDiagrams(article, dark);
+      }
     };
     apply(settings);
     MDR.onSettingsChanged(apply);
     wide.addEventListener('change', () => apply(current));
+    systemDark.addEventListener('change', () => apply(current));
     shell.addEventListener('mdr-action', async (e) => {
       const action = e.detail;
       if (action === 'theme') MDR.saveSettings({ theme: THEME_ORDER[(THEME_ORDER.indexOf(current.theme) + 1) % 3] });

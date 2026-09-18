@@ -1,16 +1,16 @@
 // 自動化測試:用 Chrome for Testing 載入插件,跑完整流程並列出結果
 // 用法:npm test    (Google Drive 需登入、系統通知需真人看,改由人工驗收)
 import { chromium } from 'playwright';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import http from 'node:http';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { launchWithExtension } from './lib/launch.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const EXT = join(ROOT, 'extension');
 const TMP = join(ROOT, 'tests', '.tmp');
-const PROFILE = join(TMP, 'profile');
 const DOWNLOADS = join(TMP, 'downloads');
 const OUTPUT = join(ROOT, 'tests', 'output');
 const VERSION = JSON.parse(readFileSync(join(EXT, 'manifest.json'), 'utf8')).version;
@@ -39,43 +39,11 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
 // ---------- 啟動載入插件的 Chrome for Testing ----------
-rmSync(TMP, { recursive: true, force: true });
-mkdirSync(join(PROFILE, 'Default'), { recursive: true });
-mkdirSync(DOWNLOADS, { recursive: true });
 mkdirSync(OUTPUT, { recursive: true });
-writeFileSync(join(PROFILE, 'Default', 'Preferences'), JSON.stringify({
-  download: { default_directory: DOWNLOADS, prompt_for_download: false, directory_upgrade: true },
-}));
-const chrome = spawn(chromium.executablePath(), [
-  `--user-data-dir=${PROFILE}`, `--load-extension=${EXT}`, `--disable-extensions-except=${EXT}`,
-  '--remote-debugging-port=0', '--headless', '--no-first-run', '--no-default-browser-check', 'about:blank',
-], { stdio: 'ignore' });
-const portFile = join(PROFILE, 'DevToolsActivePort');
-for (let i = 0; i < 100 && !existsSync(portFile); i++) await sleep(100);
-const port = readFileSync(portFile, 'utf8').split('\n')[0];
-const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
-const context = browser.contexts()[0];
-
-// Chrome 內建的元件擴充也有背景程式(連檔名都叫 background.js),用插件名稱挑出我們的
-async function findOurWorker() {
-  for (let i = 0; i < 75; i++) {
-    for (const w of context.serviceWorkers()) {
-      const name = await w.evaluate(() => chrome.runtime.getManifest().name).catch(() => null);
-      if (name === 'MD隨手讀') return w;
-    }
-    await sleep(200);
-  }
-  throw new Error('找不到 MD隨手讀 的背景程式,插件可能載入失敗');
-}
-const sw = await findOurWorker();
-const EXT_ID = new URL(sw.url()).host;
+const { browser, context, sw, extId: EXT_ID, close } = await launchWithExtension({ extensionDir: EXT, tmpDir: TMP, downloadsDir: DOWNLOADS });
 const OPTIONS_URL = `chrome-extension://${EXT_ID}/pages/options.html`;
 const setSettings = (patch) => sw.evaluate((p) => chrome.storage.sync.set(p), patch);
 const resetSettings = () => sw.evaluate(() => chrome.storage.sync.clear());
-
-// Playwright 會把下載檔改成亂碼檔名,改回 Chrome 的正常行為(保留原檔名)
-const cdp = await browser.newBrowserCDPSession();
-await cdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: DOWNLOADS });
 
 // ---------- 小工具 ----------
 const results = [];
@@ -494,6 +462,202 @@ await check('7 右鍵・小視窗', '小視窗:⚙️ 設定、📜 更新日誌
   return '兩個入口都正確;已有權限時不顯示提醒';
 });
 
+// ========== 8 Obsidian 語法・流程圖・數學(v0.4)==========
+await check('8 Obsidian', '屬性表', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  await page.screenshot({ path: join(OUTPUT, 'obsidian-top.png') });
+  const r = await page.evaluate(() => {
+    const box = document.querySelector('.mdr-props');
+    const row = (k) => [...box.querySelectorAll('.mdr-prop-key')].find((e) => e.textContent === k)?.nextElementSibling;
+    return {
+      first: document.querySelector('.mdr-body').firstElementChild === box,
+      keys: box.querySelectorAll('.mdr-prop-key').length,
+      tags: [...row('tags').querySelectorAll('.mdr-prop-pill')].map((p) => p.textContent),
+      date: row('date').textContent,
+      done: row('done').querySelector('input')?.checked,
+      related: [...row('related').querySelectorAll('a.internal-link')].map((a) => a.getAttribute('href')),
+      source: row('source').querySelector('a')?.href,
+      empty: row('empty').textContent,
+      title: document.title,
+    };
+  });
+  await page.close();
+  assert(r.first && r.keys === 10 && r.tags.join() === '測試,obsidian' && r.date === '2026-09-18' && r.done === true
+    && r.related.join() === 'sample-zh.md,toc-long.md' && r.source === 'https://obsidian.md/' && r.empty === '—' && r.title === 'Obsidian 語法大全', JSON.stringify(r));
+  return '10 個屬性:清單、日期、勾選、連結、空值都正確';
+});
+await check('8 Obsidian', '雙中括號連結:同資料夾、段落、區塊', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  const r = await page.evaluate(() => {
+    const href = (t) => document.querySelector(`.mdr-body > p a.internal-link[data-href="${t}"]`)?.getAttribute('href');
+    const label = (t) => document.querySelector(`.mdr-body > p a.internal-link[data-href="${t}"]`)?.textContent;
+    return {
+      plain: href('sample-zh'),
+      alias: label('toc-long'),
+      heading: href('toc-long#第 3 章 章節標題'),
+      headingLabel: label('toc-long#第 3 章 章節標題'),
+      self: href('#提示框'),
+      block: href('#^block-1'),
+      blockTarget: !!document.getElementById('^block-1'),
+      blockHidden: !document.body.innerText.includes('^block-1'),
+    };
+  });
+  const [nav] = await Promise.all([page.waitForNavigation(), page.click('.mdr-body > p a.internal-link[data-href="sample-zh"]')]);
+  await page.waitForTimeout(400);
+  const landed = await page.evaluate(() => document.body.innerText.includes('MDR-ZH-OK-繁中正常'));
+  await page.close();
+  assert(r.plain === 'sample-zh.md' && r.alias === '長文件目錄' && r.heading === `toc-long.md#${encodeURIComponent('第-3-章-章節標題')}`
+    && r.headingLabel === 'toc-long > 第 3 章 章節標題' && r.self === `#${encodeURIComponent('提示框')}` && r.block === '#%5Eblock-1'
+    && r.blockTarget && r.blockHidden && landed, JSON.stringify({ ...r, landed }));
+  return '網址正確,點了能跳到另一篇';
+});
+await check('8 Obsidian', '填了保險庫名稱 → 連結改成用 Obsidian 打開(即時)', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  const opt = await open(`${OPTIONS_URL}#reading`, 1200);
+  await opt.fill('input[data-key="obsidianVault"]', 'LLM Wiki');
+  await opt.press('input[data-key="obsidianVault"]', 'Enter');
+  await sleep(500);
+  const href = await page.getAttribute('.mdr-body > p a.internal-link[data-href="sample-zh"]', 'href');
+  const prop = await page.getAttribute('.mdr-props a.internal-link', 'href');
+  await opt.close();
+  await page.close();
+  await resetSettings();
+  const want = 'obsidian://open?vault=LLM%20Wiki&file=sample-zh';
+  assert(href === want && prop === want, `${href} / ${prop}`);
+  return want;
+});
+await check('8 Obsidian', '提示框:類型、標題、收合、巢狀、別名', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  const r = await page.evaluate(() => {
+    const all = [...document.querySelectorAll('.callout')];
+    const by = (t) => document.querySelector(`.callout[data-callout="${t}"]`);
+    const title = (el) => el?.querySelector(':scope > .callout-title').textContent.trim();
+    return {
+      count: all.length,
+      types: all.map((c) => c.dataset.callout).join(),
+      noteTitle: title(by('note')),
+      tipTitle: title(by('tip')),
+      tipHasLink: !!by('tip').querySelector('.callout-content a.internal-link'),
+      tipColor: getComputedStyle(by('tip').querySelector('.callout-title')).color,
+      warnFolded: by('warning').tagName === 'DETAILS' && !by('warning').open,
+      successOpen: by('success').tagName === 'DETAILS' && by('success').open,
+      nested: !!by('question').querySelector('.callout-content .callout[data-callout="danger"]'),
+      plainQuote: document.querySelectorAll('.mdr-body > blockquote').length,
+      leftover: document.body.innerText.includes('[!'),
+    };
+  });
+  await page.click('.callout[data-callout="warning"] > summary');
+  const unfolded = await page.isVisible('text=MDR-FOLD-OK');
+  await page.screenshot({ path: join(OUTPUT, 'obsidian-callouts.png'), fullPage: true });
+  await page.close();
+  assert(r.count === 8 && r.noteTitle === 'Note' && r.tipTitle === '有標題的提示框' && r.tipHasLink && r.tipColor === 'rgb(0, 191, 188)'
+    && r.warnFolded && r.successOpen && r.nested && r.plainQuote === 1 && !r.leftover && unfolded
+    && r.types === 'note,tip,warning,success,question,danger,question,quote', JSON.stringify({ ...r, unfolded }));
+  return '8 個提示框(含巢狀、收合、別名 faq→question)';
+});
+await check('8 Obsidian', '螢光筆、標籤、註解', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  const r = await page.evaluate(() => ({
+    mark: document.querySelector('.mdr-body mark')?.textContent,
+    tags: [...document.querySelectorAll('.mdr-body > p .mdr-tag')].map((t) => t.textContent),
+    codeTag: !!document.querySelector('code .mdr-tag'),
+    comment: /看不到我|整段註解/.test(document.body.innerText),
+  }));
+  await page.close();
+  assert(r.mark === '螢光筆' && r.tags.join() === '#標籤,#巢狀/標籤' && !r.codeTag && !r.comment, JSON.stringify(r));
+  return `螢光筆 ✓、標籤 ${r.tags.join(' ')}、註解已隱藏`;
+});
+await check('8 Obsidian', '嵌入:到附件資料夾找圖、指定寬度、找不到的提示、嵌入筆記', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  await page.waitForTimeout(600);
+  const r = await page.evaluate(() => {
+    const imgs = [...document.querySelectorAll('img.mdr-embed-img')];
+    return {
+      loaded: imgs.map((i) => i.naturalWidth),
+      src: imgs[0]?.getAttribute('src'),
+      width: imgs[1]?.getAttribute('width'),
+      missing: document.querySelector('.mdr-embed-missing')?.textContent,
+      note: document.querySelector('a.mdr-embed-note')?.getAttribute('href'),
+    };
+  });
+  await page.close();
+  assert(r.loaded.length === 2 && r.loaded.every((w) => w > 0) && r.src === 'images/sample.png' && r.width === '64'
+    && r.missing?.includes('不存在的圖.png') && r.note === 'sample-zh.md', JSON.stringify(r));
+  return `在 ${r.src} 找到圖`;
+});
+await check('8 Obsidian', '腳註', async () => {
+  const page = await open(fileUrl('obsidian-note.md'));
+  const r = await page.evaluate(() => ({ refs: document.querySelectorAll('.mdr-body sup.footnote-ref').length, notes: document.querySelectorAll('.mdr-body .footnotes li').length }));
+  await page.close();
+  assert(r.refs === 2 && r.notes === 2, JSON.stringify(r));
+  return '2 個腳註';
+});
+await check('8 Obsidian', '關閉「顯示屬性表」', async () => {
+  await setSettings({ showProperties: false });
+  const page = await open(fileUrl('obsidian-note.md'));
+  const hidden = await page.$eval('.mdr-props', (el) => el.hidden);
+  await page.close();
+  await resetSettings();
+  assert(hidden, '屬性表仍然顯示');
+  return '屬性表隱藏';
+});
+await check('8 Obsidian', '數學公式(含字型)、價錢不誤判、錯誤公式', async () => {
+  const page = await open(fileUrl('math.md'));
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: join(OUTPUT, 'math.png') });
+  const r = await page.evaluate(() => ({
+    katex: document.querySelectorAll('.mdr-body .katex').length,
+    blocks: document.querySelectorAll('.mdr-body .katex-display').length,
+    price: document.body.innerText.includes('這杯 $5,那杯 $10'),
+    error: !!document.querySelector('.mdr-body .katex-error'),
+    font: [...document.fonts].some((f) => f.family.includes('KaTeX_Main') && f.status === 'loaded'),
+  }));
+  await page.close();
+  assert(r.katex === 5 && r.blocks === 3 && r.price && r.error && r.font, JSON.stringify(r));
+  return `${r.katex} 個公式(${r.blocks} 個區塊),KaTeX 字型已載入`;
+});
+await check('8 Obsidian', 'Mermaid:流程圖、循序圖、語法錯誤的說明', async () => {
+  const page = await open(fileUrl('mermaid.md'));
+  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
+  await page.waitForTimeout(500);
+  const r = await page.evaluate(() => ({
+    svgs: document.querySelectorAll('.mdr-mermaid svg').length,
+    errors: document.querySelectorAll('.mdr-mermaid.is-error').length,
+    label: document.querySelector('.mdr-mermaid')?.textContent.includes('排版顯示'),
+    stray: document.querySelectorAll('body > [id^="dmdr-mermaid"]').length,
+  }));
+  await page.screenshot({ path: join(OUTPUT, 'mermaid.png'), fullPage: true });
+  await page.close();
+  assert(r.svgs === 2 && r.errors === 1 && r.label && r.stray === 0, JSON.stringify(r));
+  return '2 張圖 + 1 個錯誤說明';
+});
+await check('8 Obsidian', 'Mermaid:切深色主題會重畫', async () => {
+  const page = await open(fileUrl('mermaid.md'));
+  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
+  const before = await page.$eval('.mdr-mermaid svg', (s) => s.outerHTML.length + s.querySelector('style')?.textContent.slice(0, 400));
+  await setSettings({ theme: 'dark' });
+  await page.waitForFunction((b) => {
+    const s = document.querySelector('.mdr-mermaid svg');
+    return s && s.outerHTML.length + s.querySelector('style')?.textContent.slice(0, 400) !== b;
+  }, before, { timeout: 10000 });
+  await page.screenshot({ path: join(OUTPUT, 'mermaid-dark.png') });
+  await page.close();
+  await resetSettings();
+  return '配色已更新';
+});
+await check('8 Obsidian', '閱讀頁也能畫流程圖;沒有流程圖的文件不載入元件', async () => {
+  const viewer = (f) => `chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(fileUrl(f))}`;
+  const page = await open(viewer('mermaid.md'));
+  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
+  const svgs = await page.$$eval('.mdr-mermaid svg', (s) => s.length);
+  await page.close();
+  const plain = await open(viewer('sample-zh.md'));
+  const loaded = await plain.evaluate(() => typeof window.mermaid !== 'undefined');
+  await plain.close();
+  assert(svgs === 2 && !loaded, `svgs=${svgs}, 一般文件載入了 mermaid=${loaded}`);
+  return '閱讀頁 2 張圖;一般文件沒載入';
+});
+
 // ========== 2 下載(三種模式)==========
 await check('2 下載', '預設「跳通知」:下載 .md 後出現通知', async () => {
   await resetSettings();
@@ -551,8 +715,7 @@ await check('2 下載', '「不處理」:沒有通知也不開分頁', async () 
 });
 
 // ---------- 收尾 ----------
-await browser.close().catch(() => {});
-chrome.kill();
+await close();
 server.close();
 
 const version = execFileSync(chromium.executablePath(), ['--version']).toString().trim();

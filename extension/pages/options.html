@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>MD隨手讀 設定</title>
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
 <link rel="stylesheet" href="../styles/reader.css">
 <link rel="stylesheet" href="options.css">
 </head>
@@ -60,6 +61,14 @@
         <button type="button" class="opt-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
       </div>
       <div class="opt-row">
+        <div><div class="opt-title">顯示屬性表</div><div class="opt-desc">Obsidian 筆記開頭 <code>---</code> 包起來的屬性(標籤、日期、相關筆記…),顯示成表格。</div></div>
+        <button type="button" class="opt-switch" role="switch" data-key="showProperties" aria-label="顯示屬性表"></button>
+      </div>
+      <div class="opt-row">
+        <div><div class="opt-title">Obsidian 保險庫名稱</div><div class="opt-desc">填了之後,點 <code>[[雙中括號連結]]</code> 會直接在 Obsidian App 打開那篇筆記(不管放在哪個資料夾)。<br>空白的話,會去找同一個資料夾裡的同名 .md。</div></div>
+        <input type="text" class="opt-text" data-key="obsidianVault" placeholder="例如:LLM Wiki" aria-label="Obsidian 保險庫名稱">
+      </div>
+      <div class="opt-row">
         <div><div class="opt-title">記錄最近開過的檔案</div><div class="opt-desc">列在插件小視窗裡,方便再次打開。紀錄只存在這台電腦,不會上傳。</div></div>
         <button type="button" class="opt-switch" role="switch" data-key="recordRecent" aria-label="記錄最近開過的檔案"></button>
       </div>
@@ -102,11 +111,17 @@
 <div class="opt-toast" id="toast" role="status">✓ 已儲存</div>
 
 <script src="../vendor/markdown-it.min.js"></script>
+<script src="../vendor/markdown-it-mark.min.js"></script>
+<script src="../vendor/markdown-it-footnote.min.js"></script>
 <script src="../vendor/purify.min.js"></script>
 <script src="../vendor/highlight.min.js"></script>
+<script src="../vendor/js-yaml.min.js"></script>
+<script src="../vendor/katex/katex.min.js"></script>
 <script src="../core/detect.js"></script>
 <script src="../core/settings.js"></script>
 <script src="../core/library.js"></script>
+<script src="../core/syntax.js"></script>
+<script src="../core/obsidian.js"></script>
 <script src="../core/render.js"></script>
 <script src="options.js"></script>
 </body>

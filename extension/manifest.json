@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MD隨手讀",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "在 Chrome 裡輕鬆閱讀 Markdown:本機、網路、下載、Google Drive 一次搞定。",
   "minimum_chrome_version": "128",
   "icons": {
@@ -27,7 +27,8 @@
     "notifications",
     "declarativeNetRequest",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -65,16 +66,24 @@
       ],
       "js": [
         "vendor/markdown-it.min.js",
+        "vendor/markdown-it-mark.min.js",
+        "vendor/markdown-it-footnote.min.js",
         "vendor/purify.min.js",
         "vendor/highlight.min.js",
+        "vendor/js-yaml.min.js",
+        "vendor/katex/katex.min.js",
         "core/detect.js",
         "core/settings.js",
         "core/library.js",
+        "core/syntax.js",
+        "core/obsidian.js",
         "core/render.js",
+        "core/diagram.js",
         "core/reader.js",
         "content/inplace.js"
       ],
       "css": [
+        "vendor/katex/katex.min.css",
         "styles/reader.css"
       ],
       "run_at": "document_end"
@@ -87,6 +96,16 @@
         "content/drive-probe.js"
       ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "vendor/katex/fonts/*.woff2"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

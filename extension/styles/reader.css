@@ -23,6 +23,14 @@ html[data-mdr] {
   --mdr-hl-title: #1e66f5;
   --mdr-hl-attr: #df8e1d;
   --mdr-hl-type: #d20f39;
+  /* Obsidian 提示框色票(RGB) */
+  --mdr-c-blue: 8, 109, 221;
+  --mdr-c-cyan: 0, 191, 188;
+  --mdr-c-green: 8, 185, 78;
+  --mdr-c-orange: 236, 117, 0;
+  --mdr-c-red: 233, 49, 71;
+  --mdr-c-purple: 120, 82, 238;
+  --mdr-c-gray: 158, 158, 158;
   color-scheme: light;
   background: var(--mdr-bg);
 }
@@ -44,6 +52,13 @@ html[data-mdr][data-mdr-theme="dark"] {
   --mdr-hl-title: #89b4fa;
   --mdr-hl-attr: #f9e2af;
   --mdr-hl-type: #f38ba8;
+  --mdr-c-blue: 2, 122, 255;
+  --mdr-c-cyan: 83, 223, 221;
+  --mdr-c-green: 68, 207, 110;
+  --mdr-c-orange: 233, 151, 63;
+  --mdr-c-red: 251, 70, 76;
+  --mdr-c-purple: 168, 130, 255;
+  --mdr-c-gray: 158, 158, 158;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -65,6 +80,13 @@ html[data-mdr][data-mdr-theme="dark"] {
     --mdr-hl-title: #89b4fa;
     --mdr-hl-attr: #f9e2af;
     --mdr-hl-type: #f38ba8;
+    --mdr-c-blue: 2, 122, 255;
+    --mdr-c-cyan: 83, 223, 221;
+    --mdr-c-green: 68, 207, 110;
+    --mdr-c-orange: 233, 151, 63;
+    --mdr-c-red: 251, 70, 76;
+    --mdr-c-purple: 168, 130, 255;
+    --mdr-c-gray: 158, 158, 158;
     color-scheme: dark;
   }
 }
@@ -244,6 +266,68 @@ html[data-mdr] .hljs-type,
 html[data-mdr] .hljs-deletion,
 html[data-mdr] .hljs-selector-class,
 html[data-mdr] .hljs-selector-id { color: var(--mdr-hl-type); }
+
+/* ---------- Obsidian 語法 ---------- */
+/* 提示框 */
+html[data-mdr] .callout {
+  --callout-color: var(--mdr-c-blue);
+  margin: 1em 0;
+  padding: 12px 16px 12px 20px;
+  border-radius: 6px;
+  background: rgba(var(--callout-color), 0.1);
+}
+html[data-mdr] .callout[data-callout="abstract"],
+html[data-mdr] .callout[data-callout="tip"] { --callout-color: var(--mdr-c-cyan); }
+html[data-mdr] .callout[data-callout="success"] { --callout-color: var(--mdr-c-green); }
+html[data-mdr] .callout[data-callout="question"],
+html[data-mdr] .callout[data-callout="warning"] { --callout-color: var(--mdr-c-orange); }
+html[data-mdr] .callout[data-callout="failure"],
+html[data-mdr] .callout[data-callout="danger"],
+html[data-mdr] .callout[data-callout="bug"] { --callout-color: var(--mdr-c-red); }
+html[data-mdr] .callout[data-callout="example"] { --callout-color: var(--mdr-c-purple); }
+html[data-mdr] .callout[data-callout="quote"] { --callout-color: var(--mdr-c-gray); }
+html[data-mdr] .callout-title { display: flex; align-items: center; gap: 8px; color: rgb(var(--callout-color)); font-weight: 600; line-height: 1.4; }
+html[data-mdr] .callout-icon { display: inline-flex; flex-shrink: 0; }
+html[data-mdr] .callout-icon svg { width: 1.05em; height: 1.05em; }
+html[data-mdr] summary.callout-title { cursor: pointer; list-style: none; }
+html[data-mdr] summary.callout-title::-webkit-details-marker { display: none; }
+html[data-mdr] summary.callout-title::after { content: "›"; margin-left: auto; font-size: 1.3em; line-height: 1; transition: transform 0.15s; }
+html[data-mdr] details.callout[open] > summary.callout-title::after { transform: rotate(90deg); }
+html[data-mdr] .callout-content { margin-top: 0.5em; overflow-x: auto; }
+html[data-mdr] .callout-content > :last-child { margin-bottom: 0; }
+
+/* 雙中括號連結、嵌入 */
+html[data-mdr] .mdr-body a.mdr-embed-note { display: block; margin: 0.8em 0; padding: 0.6em 1em; border: 1px solid var(--mdr-line); border-left: 3px solid var(--mdr-accent); border-radius: 6px; text-decoration: none; }
+html[data-mdr] .mdr-body a.mdr-embed-note::before { content: "📄 嵌入筆記:"; color: var(--mdr-muted); }
+html[data-mdr] .mdr-embed-missing { display: inline-block; padding: 0.2em 0.6em; border-radius: 6px; background: var(--mdr-bg-2); color: var(--mdr-faint); font-size: 0.9em; }
+
+/* #標籤 */
+html[data-mdr] .mdr-tag { display: inline-block; padding: 0 0.55em; border-radius: 999px; background: var(--mdr-accent-soft); color: var(--mdr-accent); font-size: 0.88em; line-height: 1.6; }
+
+/* 屬性表 */
+html[data-mdr] .mdr-props { margin: 0 0 1.8em; padding-bottom: 0.8em; border-bottom: 1px solid var(--mdr-line); font-size: 0.9em; }
+html[data-mdr] .mdr-props > summary { margin-bottom: 0.5em; color: var(--mdr-faint); font-size: 0.85em; font-weight: 600; cursor: pointer; list-style: none; }
+html[data-mdr] .mdr-props > summary::-webkit-details-marker { display: none; }
+html[data-mdr] .mdr-props > summary::before { content: "▸ "; display: inline-block; transition: transform 0.15s; }
+html[data-mdr] .mdr-props[open] > summary::before { transform: rotate(90deg); }
+html[data-mdr] .mdr-props-grid { display: grid; grid-template-columns: minmax(80px, max-content) minmax(0, 1fr); gap: 6px 20px; }
+html[data-mdr] .mdr-prop-key { color: var(--mdr-muted); }
+html[data-mdr] .mdr-prop-value { min-width: 0; overflow-wrap: anywhere; }
+html[data-mdr] .mdr-prop-pill { display: inline-block; margin: 0 0.35em 0.3em 0; padding: 0 0.6em; border-radius: 999px; background: var(--mdr-accent-soft); color: var(--mdr-accent); }
+html[data-mdr] .mdr-prop-empty { color: var(--mdr-faint); }
+html[data-mdr] .mdr-props-raw { grid-column: 1 / -1; margin: 0; }
+
+/* 腳註 */
+html[data-mdr] .mdr-body .footnotes { margin-top: 2.5em; color: var(--mdr-muted); font-size: 0.9em; }
+html[data-mdr] .mdr-body .footnote-ref a,
+html[data-mdr] .mdr-body a.footnote-backref { text-decoration: none; }
+
+/* 數學公式、流程圖 */
+html[data-mdr] .mdr-math-block { margin: 1em 0; overflow-x: auto; overflow-y: hidden; }
+html[data-mdr] .mdr-mermaid { margin: 1.2em 0; overflow-x: auto; text-align: center; }
+html[data-mdr] .mdr-mermaid svg { max-width: 100%; height: auto; }
+html[data-mdr] .mdr-mermaid.is-error { text-align: left; }
+html[data-mdr] .mdr-mermaid-error { margin-bottom: 0.5em; color: rgb(var(--mdr-c-red)); font-size: 0.9em; }
 
 /* 原始碼檢視 */
 html[data-mdr] .mdr-raw {

@@ -3,3 +3,5 @@ node_modules/
 tests/.tmp/
 tests/output/
 extension/_metadata/
+tests/.tmp-vault/
+dist/

@@ -17,11 +17,21 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **背景管家是 classic script**(不是 module):頂層函式是全域的,自動化測試直接呼叫 `openDownloadFromNotification()`、`openFromContextMenu()`。
 - **小視窗(popup)不能放需要離開焦點的操作**:拖放、選檔視窗都會讓小視窗關閉 → 改開分頁(`pages/open.html`)。
 - 儲存分工:使用者設定 → `chrome.storage.sync`(跨電腦);最近開過、貼上文字 → `chrome.storage.local`(只在本機,`core/library.js`)。
+- **會被 DOMPurify 擋的網址(`obsidian://`)不能在解析階段產生**:解析只寫 `data-href` / `data-embed`,消毒後由 `core/obsidian.js` 依設定填入(改設定時即時重填)。
+- **大型元件延遲載入**:Mermaid 只在文件有流程圖時載入 —— 一般網頁請背景管家 `chrome.scripting` 注入(`LAZY_SCRIPTS` 白名單),插件頁面直接加 `<script>`。
+- **content script 注入的 CSS 不能用相對路徑載字型/圖片**(會對到網頁):`npm run sync` 把 KaTeX 字型網址改寫成 `chrome-extension://__MSG_@@extension_id__/…`,字型列在 `web_accessible_resources`。
+- 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
+
+## 版本流程(PM 授權自行 commit、驗證、發布)
+
+每版:實作 → `npm run sync` → `npm test` + `npm run test:vault` → 更新四份文件(CHANGELOG、checklist、TODO、PROGRESS)→ `git commit -m "v{版本}: 白話摘要"` → `npm run release`(zip 安裝包 + git tag)。
 
 ## 測試
 
 - `npm test`:Chrome for Testing 載入插件跑自動化測試,結果寫進 `tests/output/e2e-results.md`,截圖在 `tests/output/`。
+- `npm run test:vault`:用 PM 的 Obsidian 知識庫(預設 `~/Obsidian/LLM Wiki/wiki`)挑 20 篇真實筆記驗收;筆記只在本機讀,結果在 `tests/output/vault/`(不進版控)。
+- 啟動載入插件的測試瀏覽器:`tests/lib/launch.mjs`(兩套測試共用)。
 - 用插件**名稱**找背景程式(Chrome 內建元件擴充也有叫 `background.js` 的背景程式)。
 - 下載測試要先用 CDP `Browser.setDownloadBehavior` 改回正常行為,否則 Playwright 會把檔名改成 GUID。
 - Google Drive、Windows、真實 Chrome 的通知需人工測試,見 `docs/verification/`。

@@ -63,9 +63,17 @@ function toFileUrl(path) {
   return ('file://' + (encoded.startsWith('/') ? '' : '/') + encoded).replace(/^file:\/\/\/([A-Za-z])%3A/, 'file:///$1:');
 }
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+// 大型元件只在需要時才注入網頁(例如文件裡有流程圖才載入 Mermaid)
+const LAZY_SCRIPTS = ['vendor/mermaid.min.js'];
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // 閱讀畫面右上角的 ⚙️(content script 不能直接開設定頁,請背景管家代勞)
   if (msg?.type === 'open-options') chrome.runtime.openOptionsPage();
+  if (msg?.type === 'load-script' && LAZY_SCRIPTS.includes(msg.file) && sender.tab) {
+    chrome.scripting.executeScript({ target: { tabId: sender.tab.id, frameIds: [sender.frameId] }, files: [msg.file] })
+      .then(() => sendResponse(true), (e) => sendResponse(e.message));
+    return true;
+  }
   // 第 0 期實驗:Google Drive 能不能拿到 .md 原文
   if (msg?.type === 'drive-probe') {
     probeDrive(msg.ids).then(sendResponse);

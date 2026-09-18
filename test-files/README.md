@@ -11,4 +11,6 @@
 | 7 | `images.md` | 相對路徑圖片、網路圖片 |
 | 8 | `tables-wide.md` | 表格對齊、超寬表格左右捲動 |
 | 9 | `inline-html.md` | 粗斜體、刪除線、螢光筆、按鍵、上下標、details 展開 |
-| 10 | `obsidian-note.md` | Obsidian 語法(v0.5 才會漂亮,現在顯示原始符號屬正常) |
+| 10 | `obsidian-note.md` | Obsidian 語法大全:屬性表、雙中括號連結、提示框(含收合、巢狀)、螢光筆、標籤、註解、區塊 ID、嵌入圖片與筆記、腳註 |
+| 11 | `mermaid.md` | Mermaid 流程圖、循序圖、語法錯誤時的顯示 |
+| 12 | `math.md` | 數學公式(行內、區塊、矩陣)、價錢不被誤判、錯誤公式 |

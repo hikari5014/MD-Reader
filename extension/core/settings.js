@@ -8,6 +8,8 @@
     toc: true, // 寬螢幕時預設顯示目錄
     downloadMode: 'notify', // notify(跳通知,點了才開)| auto(自動開)| off(不處理)
     recordRecent: true, // 記錄最近開過的檔案(顯示在小視窗)
+    showProperties: true, // 顯示筆記開頭的屬性表(frontmatter)
+    obsidianVault: '', // 填了 → [[連結]] 用 Obsidian App 打開;空白 → 找同資料夾的 .md
   });
   const WIDTHS = { narrow: '680px', medium: '760px', wide: '960px', full: 'none' };
 

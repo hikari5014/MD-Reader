@@ -3,7 +3,7 @@ const version = chrome.runtime.getManifest().version;
 document.getElementById('version').textContent = `v${version}`;
 document.getElementById('current-version').textContent = `v${version}`;
 
-const PREVIEW = `## 預覽標題\n\n這是一段**示範文字**,用來看字級與主題的效果。[連結長這樣](https://obsidian.md)。\n\n- [x] 已完成的事\n- [ ] 還沒做的事\n\n\`\`\`js\nconst 問候 = '你好';\n\`\`\``;
+const PREVIEW = `## 預覽標題\n\n這是一段**示範文字**,用來看字級與主題的效果。[連結長這樣](https://obsidian.md)、[[雙中括號連結]]、==螢光筆==、#標籤。\n\n> [!tip] 提示框\n> Obsidian 風格的提示框。\n\n- [x] 已完成的事\n- [ ] 還沒做的事\n\n\`\`\`js\nconst 問候 = '你好';\n\`\`\``;
 const preview = document.getElementById('preview');
 preview.innerHTML = MDR.renderMarkdown(PREVIEW);
 MDR.enhance(preview);
@@ -25,6 +25,9 @@ function render(s) {
     group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === s[group.dataset.key])));
   });
   document.querySelectorAll('.opt-switch[data-key]').forEach((sw) => sw.setAttribute('aria-checked', String(!!s[sw.dataset.key])));
+  document.querySelectorAll('.opt-text[data-key]').forEach((input) => {
+    if (document.activeElement !== input) input.value = s[input.dataset.key];
+  });
   const range = document.querySelector('input[data-key="fontSize"]');
   range.value = s.fontSize;
   document.getElementById('fontSize-value').textContent = `${s.fontSize} px`;
@@ -44,6 +47,10 @@ document.addEventListener('click', (e) => {
   if (choice) return save({ [choice.parentElement.dataset.key]: choice.dataset.value });
   const sw = e.target.closest('.opt-switch[data-key]');
   if (sw) return save({ [sw.dataset.key]: sw.getAttribute('aria-checked') !== 'true' });
+});
+// 文字欄:離開欄位或按 Enter 才存
+document.querySelectorAll('.opt-text[data-key]').forEach((input) => {
+  input.addEventListener('change', () => save({ [input.dataset.key]: input.value.trim() }));
 });
 // 拖曳中只即時預覽,放開才存(chrome.storage.sync 每分鐘最多寫 120 次)
 const fontRange = document.querySelector('input[data-key="fontSize"]');
