@@ -704,6 +704,12 @@ await context.route(/^https:\/\/(drive|docs)\.google\.com\/(file|document|drive)
   if (url.pathname === `/file/d/${DRIVE_NOACCESS}/view`) return route.fulfill(fakePage('機密.md - Google Drive'));
   if (url.pathname === `/file/d/${DRIVE_PDF}/view`) return route.fulfill(fakePage('README.pdf - Google 雲端硬碟'));
   if (url.pathname === `/document/d/${DRIVE_MD}/edit`) return route.fulfill(fakePage('週會紀錄.md - Google 文件'));
+  if (url.pathname.startsWith('/drive/u/0/folders/')) { // 模擬登入後的列表:沒有 aria-selected 標記,檔名在巢狀元素裡
+    return route.fulfill(fakePage('manuscript - Google 雲端硬碟', `<div role="grid">
+      <div role="row" data-id="${DRIVE_PDF}"><div data-id="${DRIVE_PDF}"><span class="name">README.pdf</span></div><div>我</div><div>上午9:37</div></div>
+      <div role="row" data-id="${DRIVE_MD}"><div data-id="${DRIVE_MD}"><span class="name">週會紀錄.md</span></div><div>我</div><div>上午9:37</div><div>7 KB</div></div>
+      <div id="empty-area" style="height:200px">空白處</div></div>`));
+  }
   if (url.pathname.startsWith('/drive/folders/')) {
     return route.fulfill(fakePage('資料夾 - Google 雲端硬碟', `<table>
       <tr role="row" data-id="${DRIVE_PDF}" aria-selected="false" aria-label="README.pdf 已共用 1.9 MB"><td>README.pdf</td></tr>
@@ -784,6 +790,44 @@ await check('9 Google Drive', '檔案列表:選取 .md 才出現按鈕', async (
   await page.close();
   assert(none === null && selected?.includes('週會紀錄.md'), `沒選:${none};選了:${selected}`);
   return '沒選不顯示,選了 .md 才顯示';
+});
+await check('9 Google Drive', '登入後的列表(沒有選取標記):點了 .md 那一列就出現按鈕', async () => {
+  const page = await open('https://drive.google.com/drive/u/0/folders/fake');
+  await page.waitForTimeout(1200);
+  const none = await driveButton(page);
+  await page.click('[role="row"][data-id="' + DRIVE_MD + '"] .name');
+  await page.waitForTimeout(300);
+  const md = await driveButton(page);
+  await page.click('[role="row"][data-id="' + DRIVE_PDF + '"] .name');
+  await page.waitForTimeout(300);
+  const pdf = await driveButton(page);
+  await page.click('#empty-area');
+  await page.waitForTimeout(300);
+  const empty = await driveButton(page);
+  await page.close();
+  assert(none === null && md?.includes('週會紀錄.md') && pdf === null && empty === null, JSON.stringify({ none, md, pdf, empty }));
+  return '點 .md 出現、點 PDF 或空白處消失';
+});
+await check('9 Google Drive', '在 Drive 上打開小視窗:直接開目前選的 .md', async () => {
+  const drive = await open('https://drive.google.com/drive/u/0/folders/fake');
+  await drive.waitForTimeout(1200);
+  const tabId = await sw.evaluate(async () => (await chrome.tabs.query({ url: 'https://drive.google.com/drive/u/0/*' }))[0]?.id);
+  let popup = await open(`${POPUP_URL}?tab=${tabId}`, 340);
+  await popup.waitForTimeout(300);
+  const hint = await popup.textContent('#drive');
+  await popup.close();
+  await drive.click('[role="row"][data-id="' + DRIVE_MD + '"] .name');
+  popup = await open(`${POPUP_URL}?tab=${tabId}`, 340);
+  await popup.waitForSelector('#drive-open');
+  await popup.screenshot({ path: join(OUTPUT, 'popup-drive.png') });
+  const label = await popup.textContent('#drive-open');
+  const viewer = await expectNewPage(() => popup.click('#drive-open'));
+  const src = new URL(viewer.url()).searchParams.get('src');
+  await viewer.close();
+  await popup.close().catch(() => {});
+  await drive.close();
+  assert(hint.includes('點一下 .md') && label.includes('週會紀錄.md') && src === `https://drive.google.com/uc?export=download&id=${DRIVE_MD}`, JSON.stringify({ hint, label, src }));
+  return '沒選時提示;選了 .md 後一鍵開啟';
 });
 await check('9 Google Drive', 'Google 文件的 Markdown 模式也有按鈕', async () => {
   const page = await open(`https://docs.google.com/document/d/${DRIVE_MD}/edit`);

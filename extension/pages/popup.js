@@ -62,6 +62,45 @@ async function renderRecent(settings, fileAccess) {
   empty.textContent = settings.recordRecent ? '還沒有紀錄,開過的 .md 會出現在這裡' : '已關閉紀錄(可在設定開啟)';
 }
 
+// ---------- 在 Google Drive 上打開小視窗:直接開目前選的 .md ----------
+async function showDriveCard() {
+  const forTab = Number(new URLSearchParams(location.search).get('tab')); // 自動化測試用:指定要看哪個分頁
+  const [tab] = forTab ? [await chrome.tabs.get(forTab)] : await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !/^https:\/\/(drive|docs)\.google\.com\//.test(tab.url || '')) return;
+  const box = document.getElementById('drive');
+  const title = document.createElement('div');
+  title.className = 'pp-drive-title';
+  title.textContent = '☁️ Google Drive';
+  const body = document.createElement('div');
+  box.replaceChildren(title, body);
+  box.hidden = false;
+  let file = null;
+  try {
+    file = (await chrome.tabs.sendMessage(tab.id, { type: 'drive-current-file' }))?.file;
+  } catch {
+    // 插件更新前就開著的分頁,沒有 MD隨手讀 的小程式(Chrome 的規定)
+    body.textContent = '這個分頁要先重新整理,MD隨手讀 才讀得到 Drive 的檔案。';
+    const reload = document.createElement('button');
+    reload.type = 'button';
+    reload.textContent = '🔄 重新整理這個分頁';
+    reload.onclick = () => { chrome.tabs.reload(tab.id); window.close(); };
+    box.append(reload);
+    return;
+  }
+  if (!file) {
+    body.textContent = '在 Drive 點一下 .md 檔(或打開預覽),再按一次 MD隨手讀 圖示;頁面右下角也會出現紫色按鈕。';
+    return;
+  }
+  body.remove();
+  const open = document.createElement('button');
+  open.type = 'button';
+  open.id = 'drive-open';
+  open.textContent = `📖 用 MD隨手讀 開啟 ${file.name}`;
+  open.onclick = () => openTab(`${MDR.viewerUrl({ src: MDR.driveUrl(file.id) })}&name=${encodeURIComponent(file.name)}`);
+  box.append(open);
+}
+showDriveCard();
+
 // ---------- 設定入口 ----------
 document.getElementById('open-settings').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };
 document.getElementById('open-guide').onclick = () => openTab(chrome.runtime.getURL('pages/options.html#guide'));

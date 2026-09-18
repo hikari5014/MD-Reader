@@ -12,6 +12,10 @@ html[data-mdr-theme="dark"] .pp-warn { background: #3a2a12; color: #f5c27a; }
   html[data-mdr-theme="system"] .pp-warn { background: #3a2a12; color: #f5c27a; }
 }
 
+.pp-drive { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--mdr-line); border-radius: 10px; background: var(--mdr-bg-2); line-height: 1.5; }
+.pp-drive-title { color: var(--mdr-muted); font-size: 12px; font-weight: 600; }
+.pp-drive button { padding: 8px; border: 0; border-radius: 8px; background: var(--mdr-accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .pp-primary,
 .pp-secondary {
   width: 100%;
