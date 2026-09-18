@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "MD隨手讀",
+  "version": "0.2.0",
+  "description": "在 Chrome 裡輕鬆閱讀 Markdown:本機、網路、下載、Google Drive 一次搞定。",
+  "minimum_chrome_version": "128",
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "action": {
+    "default_title": "MD隨手讀:設定與更新日誌",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png" }
+  },
+  "options_ui": { "page": "pages/options.html", "open_in_tab": true },
+  "permissions": ["downloads", "notifications", "declarativeNetRequest", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "declarative_net_request": {
+    "rule_resources": [{ "id": "md_inline", "enabled": true, "path": "rules/md-inline.json" }]
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///*", "http://*/*", "https://*/*"],
+      "include_globs": ["*.md", "*.md?*", "*.MD", "*.MD?*", "*.markdown", "*.markdown?*", "*.mkd", "*.mkd?*", "*.mkdn", "*.mkdn?*"],
+      "js": [
+        "vendor/markdown-it.min.js", "vendor/purify.min.js", "vendor/highlight.min.js",
+        "core/detect.js", "core/settings.js", "core/render.js", "core/reader.js",
+        "content/inplace.js"
+      ],
+      "css": ["styles/reader.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://drive.google.com/*"],
+      "js": ["content/drive-probe.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

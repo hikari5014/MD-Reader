@@ -1,0 +1,25 @@
+# MD隨手讀 — 專案指示
+
+Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃見 `docs/plans/v0.1.0-plan.html`;每次對話先讀 `docs/progress/TODO.md` 與 `PROGRESS.md`。
+
+## PM 已拍板(2026-09-18)
+
+做法 C 從零輕量版 ・ 先自用不上架 ・ Google Drive 用網頁版 ・ 要 Obsidian 語法(wikilink/callout/frontmatter)・ 下載 .md 跳通知點了才開 ・ 只讀不編輯 ・ Obsidian 風外觀 ・ 只支援 Chrome ・ Mac + Windows ・ 名稱「MD隨手讀」
+
+## 技術原則
+
+- **零建置**:`extension/` 直接載入 Chrome;第三方元件用 `npm run sync` 從 node_modules 複製進 `extension/vendor/`,不從網路載入程式。
+- **更新日誌只改 `docs/changelog/CHANGELOG.md`**,再跑 `npm run sync` 複製到 `extension/CHANGELOG.md`(設定頁顯示用);`npm test` 會檢查兩份一致。
+- **所有使用者可調的項目都進設定頁**(PM 要求):預設值定義在 `core/settings.js` 的 `DEFAULTS`,UI 在 `pages/options.*`,存 `chrome.storage.sync`。
+- **排版引擎只有一份**:`core/` 同時給就地排版(content script)、閱讀頁(viewer)、設定頁、背景管家(importScripts)用,掛在 `globalThis.MDR`。閱讀畫面外殼(目錄、工具列)在 `core/reader.js`。
+- **一律消毒**:任何 Markdown 轉出的 HTML 都要過 `MDR.renderMarkdown`(內含 DOMPurify),不可繞過。
+- **樣式全部掛在 `html[data-mdr]` 底下**:`reader.css` 會被注入所有 .md 網址(包括 GitHub 這種本來就是網頁的),不能影響沒被排版的頁面。
+- **背景管家是 classic script**(不是 module):頂層函式是全域的,自動化測試直接呼叫 `openDownloadFromNotification()`。
+- Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
+
+## 測試
+
+- `npm test`:Chrome for Testing 載入插件跑自動化測試,結果寫進 `tests/output/e2e-results.md`,截圖在 `tests/output/`。
+- 用插件**名稱**找背景程式(Chrome 內建元件擴充也有叫 `background.js` 的背景程式)。
+- 下載測試要先用 CDP `Browser.setDownloadBehavior` 改回正常行為,否則 Playwright 會把檔名改成 GUID。
+- Google Drive、Windows、真實 Chrome 的通知需人工測試,見 `docs/verification/`。

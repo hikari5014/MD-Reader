@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [{ "header": "content-disposition", "operation": "remove" }]
+    },
+    "condition": {
+      "regexFilter": "^[^?#]*\\.(md|markdown|mdown|mkd|mkdn|mdwn)([?#].*)?$",
+      "isUrlFilterCaseSensitive": false,
+      "resourceTypes": ["main_frame"],
+      "responseHeaders": [{ "header": "content-disposition", "values": ["attachment*"] }]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [{ "header": "content-type", "operation": "set", "value": "text/plain; charset=utf-8" }]
+    },
+    "condition": {
+      "regexFilter": "^[^?#]*\\.(md|markdown|mdown|mkd|mkdn|mdwn)([?#].*)?$",
+      "isUrlFilterCaseSensitive": false,
+      "resourceTypes": ["main_frame"],
+      "excludedResponseHeaders": [
+        { "header": "content-type", "values": ["text/html*", "application/xhtml*", "*charset=*"] }
+      ]
+    }
+  }
+]

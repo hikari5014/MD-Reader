@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-mdr="settings">
+<head>
+<meta charset="utf-8">
+<title>MD隨手讀 設定</title>
+<link rel="stylesheet" href="../styles/reader.css">
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<div class="opt">
+  <aside class="opt-nav">
+    <div class="opt-brand">
+      <img src="../icons/icon48.png" alt="" width="32" height="32">
+      <div><div class="opt-name">MD隨手讀</div><div class="opt-version" id="version"></div></div>
+    </div>
+    <nav>
+      <a href="#appearance" data-tab="appearance">🎨 外觀</a>
+      <a href="#reading" data-tab="reading">📖 閱讀</a>
+      <a href="#download" data-tab="download">⬇️ 下載</a>
+      <a href="#permission" data-tab="permission">🔐 檔案權限</a>
+      <a href="#changelog" data-tab="changelog">📜 更新日誌</a>
+    </nav>
+    <button type="button" class="opt-reset" id="reset">恢復預設值</button>
+  </aside>
+
+  <main class="opt-main">
+    <section data-panel="appearance">
+      <h1>外觀</h1>
+      <div class="opt-row">
+        <div><div class="opt-title">主題</div><div class="opt-desc">「跟隨系統」會隨電腦的深淺色模式自動切換。閱讀畫面右上角的半圓按鈕也能切換。</div></div>
+        <div class="opt-seg" data-key="theme">
+          <button type="button" data-value="system">跟隨系統</button>
+          <button type="button" data-value="light">淺色</button>
+          <button type="button" data-value="dark">深色</button>
+        </div>
+      </div>
+      <div class="opt-row">
+        <div><div class="opt-title">字級</div><div class="opt-desc">內文文字大小,預設 16。</div></div>
+        <div class="opt-range"><input type="range" min="14" max="22" step="1" data-key="fontSize" aria-label="字級"><output id="fontSize-value"></output></div>
+      </div>
+      <div class="opt-row">
+        <div><div class="opt-title">版面寬度</div><div class="opt-desc">一行最多多寬。太寬不好讀,建議「標準」。</div></div>
+        <div class="opt-seg" data-key="width">
+          <button type="button" data-value="narrow">窄</button>
+          <button type="button" data-value="medium">標準</button>
+          <button type="button" data-value="wide">寬</button>
+          <button type="button" data-value="full">滿版</button>
+        </div>
+      </div>
+      <div class="opt-preview">
+        <div class="opt-preview-label">預覽</div>
+        <article class="mdr-body" id="preview"></article>
+      </div>
+    </section>
+
+    <section data-panel="reading" hidden>
+      <h1>閱讀</h1>
+      <div class="opt-row">
+        <div><div class="opt-title">顯示目錄</div><div class="opt-desc">螢幕夠寬時,左邊常駐文件目錄。窄螢幕一律收起,按右上角 ☰ 再打開。</div></div>
+        <button type="button" class="opt-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
+      </div>
+    </section>
+
+    <section data-panel="download" hidden>
+      <h1>下載</h1>
+      <p class="opt-desc">從網路下載到 .md 檔之後,MD隨手讀要怎麼做?</p>
+      <div class="opt-choices" data-key="downloadMode">
+        <button type="button" data-value="notify"><b>🔔 跳通知,點了才開</b><span>下載完右上角跳通知,想看再點。不打擾。</span></button>
+        <button type="button" data-value="auto"><b>⚡ 自動開新分頁</b><span>下載完直接用閱讀器打開。</span></button>
+        <button type="button" data-value="off"><b>🚫 不處理</b><span>跟沒裝插件一樣,只存檔。</span></button>
+      </div>
+      <p class="opt-note">💡 看不到通知?Mac 請到「系統設定 → 通知 → Google Chrome」允許通知;Windows 請到「設定 → 系統 → 通知」確認 Chrome 已開啟。</p>
+    </section>
+
+    <section data-panel="permission" hidden>
+      <h1>檔案權限</h1>
+      <div class="opt-status" id="file-access"></div>
+      <p class="opt-desc">要看電腦裡的 .md 檔,Chrome 規定你必須親手打開「允許存取檔案網址」開關,插件沒辦法代開。</p>
+      <ol class="opt-steps">
+        <li>按下面的按鈕,打開 MD隨手讀 的擴充功能頁</li>
+        <li>往下捲,找到「允許存取檔案網址」</li>
+        <li>把開關打開,回到這頁,狀態會自動變綠色</li>
+      </ol>
+      <button type="button" class="opt-primary" id="open-extension-page">打開擴充功能頁</button>
+    </section>
+
+    <section data-panel="changelog" hidden>
+      <h1>更新日誌</h1>
+      <p class="opt-desc">每個版本改了什麼。目前使用的是 <b id="current-version"></b>。</p>
+      <article class="mdr-body opt-changelog" id="changelog"></article>
+    </section>
+  </main>
+</div>
+<div class="opt-toast" id="toast" role="status">✓ 已儲存</div>
+
+<script src="../vendor/markdown-it.min.js"></script>
+<script src="../vendor/purify.min.js"></script>
+<script src="../vendor/highlight.min.js"></script>
+<script src="../core/settings.js"></script>
+<script src="../core/render.js"></script>
+<script src="options.js"></script>
+</body>
+</html>
