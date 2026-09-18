@@ -1,14 +1,15 @@
 {
   "name": "md-suishoudu",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MD隨手讀 Chrome 插件 — 開發與測試工具(插件本體在 extension/,不需建置)",
   "scripts": {
     "sync": "node scripts/sync.mjs",
     "icons": "node scripts/make-icons.mjs",
     "test": "node tests/e2e.mjs",
     "test:vault": "node tests/vault-check.mjs",
-    "release": "node scripts/release.mjs"
+    "release": "node scripts/release.mjs",
+    "icons:font": "node scripts/fetch-icons.mjs"
   },
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.12.0",

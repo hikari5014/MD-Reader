@@ -38,15 +38,15 @@
     return null;
   }
 
+  // 樣式在 styles/drive.css(出現時滑入、滑過浮起、按下水波紋)
   const button = document.createElement('button');
   button.type = 'button';
   button.id = 'mdr-drive-open';
-  button.style.cssText = [
-    'position:fixed', 'right:24px', 'bottom:24px', 'z-index:2147483647', 'display:none', 'max-width:360px',
-    'padding:10px 16px', 'border:0', 'border-radius:999px', 'background:#7c5cff', 'color:#fff',
-    'font:600 14px/1.3 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif',
-    'box-shadow:0 6px 20px rgba(0,0,0,.25)', 'cursor:pointer', 'white-space:nowrap', 'overflow:hidden', 'text-overflow:ellipsis',
-  ].join(';');
+  button.className = 'mdr-ix';
+  const label = document.createElement('span');
+  label.className = 'mdr-drive-label';
+  button.append(MDR.icon('auto_stories'), label);
+  MDR.enableRipple(button);
   button.addEventListener('click', () => {
     if (current) chrome.runtime.sendMessage({ type: 'open-drive-file', id: current.id, name: current.name });
   });
@@ -54,9 +54,10 @@
 
   function update() {
     current = enabled ? findMarkdownFile() : null;
-    button.style.display = current ? 'block' : 'none';
+    button.classList.toggle('is-visible', !!current);
+    button.setAttribute('aria-hidden', String(!current));
     if (current) {
-      button.textContent = `📖 用 MD隨手讀 開啟 ${current.name}`;
+      label.textContent = `用 MD隨手讀 開啟 ${current.name}`;
       button.title = `用 MD隨手讀 排版閱讀「${current.name}」(支援 Obsidian 語法)`;
     }
   }

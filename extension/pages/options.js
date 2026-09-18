@@ -1,5 +1,6 @@
 // 設定頁:所有設定改了立刻存(chrome.storage.sync),已開的閱讀分頁會即時跟著變
 const version = chrome.runtime.getManifest().version;
+MDR.enableRipple(document.body);
 document.getElementById('version').textContent = `v${version}`;
 document.getElementById('current-version').textContent = `v${version}`;
 
@@ -19,6 +20,7 @@ function showTab() {
   }
   if (tab === 'guide') loadGuide();
   if (tab === 'permission') refreshFileAccess();
+  document.querySelectorAll('.mdr-seg').forEach(MDR.moveSegThumb); // 分頁剛顯示,才量得到按鈕寬度
 }
 addEventListener('hashchange', showTab);
 
@@ -27,6 +29,7 @@ function render(s) {
   MDR.applySettings(document, s);
   document.querySelectorAll('.opt-seg[data-key], .opt-choices[data-key]').forEach((group) => {
     group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === s[group.dataset.key])));
+    if (group.classList.contains('mdr-seg')) MDR.moveSegThumb(group);
   });
   document.querySelectorAll('.opt-switch[data-key]').forEach((sw) => sw.setAttribute('aria-checked', String(!!s[sw.dataset.key])));
   document.querySelectorAll('.opt-text[data-key]').forEach((input) => {
@@ -69,15 +72,20 @@ document.getElementById('reset').addEventListener('click', () => {
 
 document.getElementById('clear-history').addEventListener('click', async (e) => {
   await MDR.clearHistory();
-  e.target.textContent = '✓ 已清除';
-  setTimeout(() => { e.target.textContent = '清除'; }, 1500);
+  const btn = e.currentTarget;
+  btn.querySelector('span:not(.mdr-icon)').textContent = '已清除';
+  btn.querySelector('.mdr-icon').dataset.icon = 'check';
+  setTimeout(() => {
+    btn.querySelector('span:not(.mdr-icon)').textContent = '清除';
+    btn.querySelector('.mdr-icon').dataset.icon = 'delete';
+  }, 1500);
 });
 
 // ---------- 檔案權限 ----------
 async function refreshFileAccess() {
   const ok = await chrome.extension.isAllowedFileSchemeAccess();
   const box = document.getElementById('file-access');
-  box.textContent = ok ? '✅ 已開啟:可以閱讀電腦裡的 .md 檔' : '⚠️ 尚未開啟:目前看不了電腦裡的 .md 檔';
+  box.replaceChildren(MDR.icon(ok ? 'check_circle' : 'warning'), ok ? '已開啟:可以閱讀電腦裡的 .md 檔' : '尚未開啟:目前看不了電腦裡的 .md 檔');
   box.classList.toggle('is-ok', ok);
 }
 document.getElementById('open-extension-page').addEventListener('click', () => {

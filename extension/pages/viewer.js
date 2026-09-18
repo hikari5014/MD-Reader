@@ -26,7 +26,9 @@
     MDR.applySettings(document, await MDR.loadSettings());
     const box = document.createElement('div');
     box.className = 'mdr-error';
-    box.textContent = `打不開這份文件:${e.message}`;
+    const msg = document.createElement('p');
+    msg.textContent = `打不開這份文件:${e.message}`;
+    box.append(MDR.icon('error'), msg);
     document.body.replaceChildren(box);
     document.documentElement.dataset.mdr = 'error';
   }

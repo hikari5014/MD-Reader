@@ -1,0 +1,67 @@
+/* Google Drive 上的「用 MD隨手讀 開啟」按鈕(只作用在這顆按鈕上,不影響 Drive 本身) */
+@font-face {
+  font-family: "MDR Symbols";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url(chrome-extension://__MSG_@@extension_id__/vendor/material-symbols/material-symbols-rounded.woff2) format("woff2");
+}
+
+#mdr-drive-open {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2147483647;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 380px;
+  padding: 12px 20px 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: #7c5cff;
+  color: #fff;
+  font: 600 14px/1.3 -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  box-shadow: 0 6px 20px rgba(76, 48, 180, 0.35);
+  cursor: pointer;
+  isolation: isolate;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.96);
+  transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1), transform 320ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 320ms, box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+#mdr-drive-open.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1), transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0s, box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+#mdr-drive-open:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(76, 48, 180, 0.45); }
+#mdr-drive-open:active { transform: scale(0.96); transition-duration: 60ms; }
+#mdr-drive-open:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.45), 0 6px 20px rgba(76, 48, 180, 0.35); }
+#mdr-drive-open .mdr-drive-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mdr-drive-open .mdr-icon {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  transition: font-variation-settings 220ms cubic-bezier(0.2, 0, 0, 1), transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#mdr-drive-open .mdr-icon::before { content: attr(data-icon); font-family: "MDR Symbols"; font-feature-settings: "liga"; -webkit-font-smoothing: antialiased; }
+#mdr-drive-open:hover .mdr-icon { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; transform: rotate(-8deg) scale(1.1); }
+
+/* 水波紋 */
+#mdr-drive-open .mdr-ripple-box { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; }
+#mdr-drive-open .mdr-ripple { position: absolute; border-radius: 50%; background: #fff; opacity: 0.25; transform: scale(0); animation: mdr-drive-ripple 520ms cubic-bezier(0.2, 0, 0, 1) forwards; }
+#mdr-drive-open .mdr-ripple.is-leaving { animation: mdr-drive-ripple 520ms cubic-bezier(0.2, 0, 0, 1) forwards, mdr-drive-ripple-out 260ms linear forwards; }
+@keyframes mdr-drive-ripple { to { transform: scale(1); } }
+@keyframes mdr-drive-ripple-out { to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #mdr-drive-open, #mdr-drive-open * { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+}

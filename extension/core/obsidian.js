@@ -1,22 +1,11 @@
 // Obsidian 語法(排版後加工):提示框、#標籤、^區塊 ID、雙中括號連結網址、嵌入圖片、屬性表
 // 全部在 DOMPurify 消毒之後執行,只移動既有節點或用 textContent 建立新節點
 (() => {
-  const svg = (body) => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
-  // 提示框類型 → 圖示(與 Obsidian 相同的 Lucide 圖示)
+  // 提示框類型 → Google Material Symbols 圖示
   const ICONS = {
-    note: svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
-    abstract: svg('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>'),
-    info: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
-    todo: svg('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
-    tip: svg('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
-    success: svg('<path d="M20 6 9 17l-5-5"/>'),
-    question: svg('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>'),
-    warning: svg('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/>'),
-    failure: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
-    danger: svg('<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>'),
-    bug: svg('<rect x="8" y="6" width="8" height="14" rx="4"/><path d="m19 7-3 2M5 7l3 2M19 19l-3-2M5 19l3-2M20 13h-4M4 13h4M10 4l1 2M14 4l-1 2"/>'),
-    example: svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
-    quote: svg('<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 0-1 1v3c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>'),
+    note: 'edit', abstract: 'summarize', info: 'info', todo: 'check_circle', tip: 'local_fire_department',
+    success: 'check', question: 'help', warning: 'warning', failure: 'close', danger: 'bolt',
+    bug: 'bug_report', example: 'list', quote: 'format_quote',
   };
   const ALIASES = { summary: 'abstract', tldr: 'abstract', hint: 'tip', important: 'tip', check: 'success', done: 'success', help: 'question', faq: 'question', caution: 'warning', attention: 'warning', fail: 'failure', missing: 'failure', error: 'danger', cite: 'quote' };
 
@@ -57,9 +46,8 @@
       if (fold === '+') box.open = true;
       const title = document.createElement(fold ? 'summary' : 'div');
       title.className = 'callout-title';
-      const icon = document.createElement('span');
-      icon.className = 'callout-icon';
-      icon.innerHTML = ICONS[type] || ICONS.note;
+      const icon = MDR.icon(ICONS[type] || ICONS.note);
+      icon.classList.add('callout-icon');
       const label = document.createElement('span');
       label.className = 'callout-title-inner';
       if (titleText.textContent.trim()) label.append(titleText);
@@ -80,7 +68,7 @@
   const TAG = /(^|[\s(（「])#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)/gu;
   function tags(root) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) => (n.parentElement.closest('code, pre, a, kbd, .mdr-tag, .katex, .mdr-mermaid, .callout-icon') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+      acceptNode: (n) => (n.parentElement.closest('code, pre, a, kbd, .mdr-tag, .katex, .mdr-mermaid, .mdr-icon') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
     });
     const nodes = [];
     while (walker.nextNode()) if (walker.currentNode.textContent.includes('#')) nodes.push(walker.currentNode);
@@ -142,7 +130,7 @@
         if (++i < tries.length) { img.src = tries[i]; return; }
         const miss = document.createElement('span');
         miss.className = 'mdr-embed-missing';
-        miss.textContent = `🖼 找不到圖片:${img.dataset.embed}`;
+        miss.append(MDR.icon('broken_image'), `找不到圖片:${img.dataset.embed}`);
         img.replaceWith(miss);
       });
       img.src = tries[0];

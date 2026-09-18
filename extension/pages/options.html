@@ -5,6 +5,7 @@
 <title>MD隨手讀 設定</title>
 <link rel="stylesheet" href="../vendor/katex/katex.min.css">
 <link rel="stylesheet" href="../styles/reader.css">
+<link rel="stylesheet" href="../styles/ui.css">
 <link rel="stylesheet" href="options.css">
 </head>
 <body>
@@ -15,26 +16,26 @@
       <div><div class="opt-name">MD隨手讀</div><div class="opt-version" id="version"></div></div>
     </div>
     <nav>
-      <a href="#appearance" data-tab="appearance">🎨 外觀</a>
-      <a href="#reading" data-tab="reading">📖 閱讀</a>
-      <a href="#download" data-tab="download">⬇️ 下載</a>
-      <a href="#permission" data-tab="permission">🔐 檔案權限</a>
-      <a href="#guide" data-tab="guide">📘 使用說明</a>
-      <a href="#changelog" data-tab="changelog">📜 更新日誌</a>
+      <a class="mdr-ix" href="#appearance" data-tab="appearance"><span class="mdr-icon" data-icon="palette" aria-hidden="true"></span>外觀</a>
+      <a class="mdr-ix" href="#reading" data-tab="reading"><span class="mdr-icon" data-icon="auto_stories" aria-hidden="true"></span>閱讀</a>
+      <a class="mdr-ix" href="#download" data-tab="download"><span class="mdr-icon" data-icon="download" aria-hidden="true"></span>下載</a>
+      <a class="mdr-ix" href="#permission" data-tab="permission"><span class="mdr-icon" data-icon="lock" aria-hidden="true"></span>檔案權限</a>
+      <a class="mdr-ix" href="#guide" data-tab="guide"><span class="mdr-icon" data-icon="menu_book" aria-hidden="true"></span>使用說明</a>
+      <a class="mdr-ix" href="#changelog" data-tab="changelog"><span class="mdr-icon" data-icon="update" aria-hidden="true"></span>更新日誌</a>
     </nav>
-    <button type="button" class="opt-reset" id="reset">恢復預設值</button>
+    <button type="button" class="mdr-btn is-danger mdr-ix opt-reset" id="reset"><span class="mdr-icon" data-icon="restart_alt" aria-hidden="true"></span>恢復預設值</button>
   </aside>
 
   <main class="opt-main">
     <section data-panel="appearance">
       <h1>外觀</h1>
       <div class="opt-row">
-        <div><div class="opt-title">主題</div><div class="opt-desc">「跟隨系統」會隨電腦的深淺色模式自動切換;「護眼」是米黃底色,適合長時間閱讀。閱讀畫面右上角的半圓按鈕也能切換。</div></div>
-        <div class="opt-seg" data-key="theme">
-          <button type="button" data-value="system">跟隨系統</button>
-          <button type="button" data-value="light">淺色</button>
-          <button type="button" data-value="dark">深色</button>
-          <button type="button" data-value="sepia">護眼</button>
+        <div><div class="opt-title">主題</div><div class="opt-desc">「跟隨系統」會隨電腦的深淺色模式自動切換;「護眼」是米黃底色,適合長時間閱讀。閱讀畫面右上角的主題按鈕也能切換。</div></div>
+        <div class="opt-seg mdr-seg" data-key="theme">
+          <button type="button" class="mdr-ix" data-value="system"><span class="mdr-icon" data-icon="brightness_auto" aria-hidden="true"></span>跟隨系統</button>
+          <button type="button" class="mdr-ix" data-value="light"><span class="mdr-icon" data-icon="light_mode" aria-hidden="true"></span>淺色</button>
+          <button type="button" class="mdr-ix" data-value="dark"><span class="mdr-icon" data-icon="dark_mode" aria-hidden="true"></span>深色</button>
+          <button type="button" class="mdr-ix" data-value="sepia"><span class="mdr-icon" data-icon="eyeglasses" aria-hidden="true"></span>護眼</button>
         </div>
       </div>
       <div class="opt-row">
@@ -43,11 +44,11 @@
       </div>
       <div class="opt-row">
         <div><div class="opt-title">版面寬度</div><div class="opt-desc">一行最多多寬。太寬不好讀,建議「標準」。</div></div>
-        <div class="opt-seg" data-key="width">
-          <button type="button" data-value="narrow">窄</button>
-          <button type="button" data-value="medium">標準</button>
-          <button type="button" data-value="wide">寬</button>
-          <button type="button" data-value="full">滿版</button>
+        <div class="opt-seg mdr-seg" data-key="width">
+          <button type="button" class="mdr-ix" data-value="narrow">窄</button>
+          <button type="button" class="mdr-ix" data-value="medium">標準</button>
+          <button type="button" class="mdr-ix" data-value="wide">寬</button>
+          <button type="button" class="mdr-ix" data-value="full">滿版</button>
         </div>
       </div>
       <div class="opt-preview">
@@ -60,31 +61,31 @@
       <h1>閱讀</h1>
       <div class="opt-row">
         <div><div class="opt-title">顯示目錄</div><div class="opt-desc">螢幕夠寬時,左邊常駐文件目錄。窄螢幕一律收起,按右上角 ☰ 再打開。</div></div>
-        <button type="button" class="opt-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
+        <button type="button" class="opt-switch mdr-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">閱讀進度條</div><div class="opt-desc">畫面最上面一條細線,顯示讀到哪裡。</div></div>
-        <button type="button" class="opt-switch" role="switch" data-key="progressBar" aria-label="閱讀進度條"></button>
+        <button type="button" class="opt-switch mdr-switch" role="switch" data-key="progressBar" aria-label="閱讀進度條"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">顯示屬性表</div><div class="opt-desc">Obsidian 筆記開頭 <code>---</code> 包起來的屬性(標籤、日期、相關筆記…),顯示成表格。</div></div>
-        <button type="button" class="opt-switch" role="switch" data-key="showProperties" aria-label="顯示屬性表"></button>
+        <button type="button" class="opt-switch mdr-switch" role="switch" data-key="showProperties" aria-label="顯示屬性表"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">Obsidian 保險庫名稱</div><div class="opt-desc">填了之後,點 <code>[[雙中括號連結]]</code> 會直接在 Obsidian App 打開那篇筆記(不管放在哪個資料夾)。<br>空白的話,會去找同一個資料夾裡的同名 .md。</div></div>
         <input type="text" class="opt-text" data-key="obsidianVault" placeholder="例如:LLM Wiki" aria-label="Obsidian 保險庫名稱">
       </div>
       <div class="opt-row">
-        <div><div class="opt-title">Google Drive 按鈕</div><div class="opt-desc">在 Google Drive / Google 文件看到 .md 時,右下角顯示「📖 用 MD隨手讀 開啟」。<br>Google 自己的預覽已能顯示一般 Markdown;這顆按鈕用來看 Obsidian 語法(提示框、雙中括號連結、流程圖、公式)。</div></div>
-        <button type="button" class="opt-switch" role="switch" data-key="driveButton" aria-label="Google Drive 按鈕"></button>
+        <div><div class="opt-title">Google Drive 按鈕</div><div class="opt-desc">在 Google Drive / Google 文件看到 .md 時,右下角顯示紫色的「用 MD隨手讀 開啟」按鈕。<br>Google 自己的預覽已能顯示一般 Markdown;這顆按鈕用來看 Obsidian 語法(提示框、雙中括號連結、流程圖、公式)。</div></div>
+        <button type="button" class="opt-switch mdr-switch" role="switch" data-key="driveButton" aria-label="Google Drive 按鈕"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">記錄最近開過的檔案</div><div class="opt-desc">列在插件小視窗裡,方便再次打開。紀錄只存在這台電腦,不會上傳。</div></div>
-        <button type="button" class="opt-switch" role="switch" data-key="recordRecent" aria-label="記錄最近開過的檔案"></button>
+        <button type="button" class="opt-switch mdr-switch" role="switch" data-key="recordRecent" aria-label="記錄最近開過的檔案"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">清除最近紀錄</div><div class="opt-desc">刪掉「最近開過」清單,以及小視窗貼上過、選檔開過的文字。</div></div>
-        <button type="button" class="opt-plain" id="clear-history">清除</button>
+        <button type="button" class="mdr-btn is-danger mdr-ix" id="clear-history"><span class="mdr-icon" data-icon="delete" aria-hidden="true"></span><span>清除</span></button>
       </div>
     </section>
 
@@ -92,11 +93,11 @@
       <h1>下載</h1>
       <p class="opt-desc">從網路下載到 .md 檔之後,MD隨手讀要怎麼做?</p>
       <div class="opt-choices" data-key="downloadMode">
-        <button type="button" data-value="notify"><b>🔔 跳通知,點了才開</b><span>下載完右上角跳通知,想看再點。不打擾。</span></button>
-        <button type="button" data-value="auto"><b>⚡ 自動開新分頁</b><span>下載完直接用閱讀器打開。</span></button>
-        <button type="button" data-value="off"><b>🚫 不處理</b><span>跟沒裝插件一樣,只存檔。</span></button>
+        <button type="button" class="mdr-ix" data-value="notify"><span class="opt-choice-icon"><span class="mdr-icon" data-icon="notifications" aria-hidden="true"></span></span><span class="opt-choice-text"><b>跳通知,點了才開</b><span>下載完右上角跳通知,想看再點。不打擾。</span></span><span class="opt-radio" aria-hidden="true"></span></button>
+        <button type="button" class="mdr-ix" data-value="auto"><span class="opt-choice-icon"><span class="mdr-icon" data-icon="bolt" aria-hidden="true"></span></span><span class="opt-choice-text"><b>自動開新分頁</b><span>下載完直接用閱讀器打開。</span></span><span class="opt-radio" aria-hidden="true"></span></button>
+        <button type="button" class="mdr-ix" data-value="off"><span class="opt-choice-icon"><span class="mdr-icon" data-icon="block" aria-hidden="true"></span></span><span class="opt-choice-text"><b>不處理</b><span>跟沒裝插件一樣,只存檔。</span></span><span class="opt-radio" aria-hidden="true"></span></button>
       </div>
-      <p class="opt-note">💡 看不到通知?Mac 請到「系統設定 → 通知 → Google Chrome」允許通知;Windows 請到「設定 → 系統 → 通知」確認 Chrome 已開啟。</p>
+      <p class="opt-note"><span class="mdr-icon" data-icon="lightbulb" aria-hidden="true"></span><span>看不到通知?Mac 請到「系統設定 → 通知 → Google Chrome」允許通知;Windows 請到「設定 → 系統 → 通知」確認 Chrome 已開啟。</span></p>
     </section>
 
     <section data-panel="permission" hidden>
@@ -108,7 +109,7 @@
         <li>往下捲,找到「允許存取檔案網址」</li>
         <li>把開關打開,回到這頁,狀態會自動變綠色</li>
       </ol>
-      <button type="button" class="opt-primary" id="open-extension-page">打開擴充功能頁</button>
+      <button type="button" class="mdr-btn-primary mdr-ix" id="open-extension-page"><span class="mdr-icon" data-icon="open_in_new" aria-hidden="true"></span>打開擴充功能頁</button>
     </section>
 
     <section data-panel="guide" hidden>
@@ -122,8 +123,9 @@
     </section>
   </main>
 </div>
-<div class="opt-toast" id="toast" role="status">✓ 已儲存</div>
+<div class="opt-toast" id="toast" role="status"><span class="mdr-icon" data-icon="check_circle" aria-hidden="true"></span>已儲存</div>
 
+<script src="../core/ui.js"></script>
 <script src="../vendor/markdown-it.min.js"></script>
 <script src="../vendor/markdown-it-mark.min.js"></script>
 <script src="../vendor/markdown-it-footnote.min.js"></script>

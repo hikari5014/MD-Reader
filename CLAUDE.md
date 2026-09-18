@@ -25,6 +25,10 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **新版本提示**:`chrome.storage.local.seenVersion`;安裝時記成目前版本,打開更新日誌時更新。
 - **連結網址一律不能帶協定開頭**:雙中括號連結當相對路徑(`javascript:` 開頭補 `./`);新增任何「由文件內容產生網址」的功能,都要加進 `test-files/xss.md`。
 - **屬性區**:`parseFrontmatter` 回傳 `{ data, strict }`;YAML 讀不懂時用寬鬆讀法並顯示提醒,不要只丟原文。
+- **介面設計系統**(v1.1,PM 要求):
+  - 圖示一律用 Google Material Symbols Rounded:`MDR.icon('名稱')` 或 `<span class="mdr-icon" data-icon="名稱" aria-hidden="true">`;**新圖示要先加進 `scripts/fetch-icons.mjs` 的 ICONS 再跑 `npm run icons:font`**(字型只含子集),不要再用表情符號當介面圖示。
+  - 可按的元素加 `.mdr-ix`(滑過、按下、焦點光暈),並在容器呼叫 `MDR.enableRipple()`;按鈕樣式用 `.mdr-btn-primary` / `.mdr-btn` / `.mdr-btn-text` / `.mdr-icon-btn`,開關 `.mdr-switch`,分段 `.mdr-seg`(改選中後呼叫 `MDR.moveSegThumb`)。
+  - 動畫時間用 `--mdr-fast/med/slow`、曲線用 `--mdr-ease` / `--mdr-ease-spring`;提示泡泡用 `data-tip`(佔用 `::after`),其他裝飾用 `::before`。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 

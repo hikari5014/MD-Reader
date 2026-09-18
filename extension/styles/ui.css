@@ -1,0 +1,279 @@
+/* 介面設計系統:圖示(Google Material Symbols Rounded)+ 互動動畫
+   閱讀畫面(注入網頁)、小視窗、設定頁、開啟檔案頁、引導頁共用。
+   所有選擇器都掛在 html[data-mdr] 底下:這個檔也會被注入沒被排版的 .md 網址,不能影響那些頁面。 */
+
+@font-face {
+  font-family: "MDR Symbols";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  /* 注入網頁的 CSS 用相對路徑會對到網頁,所以寫完整的插件網址(__MSG_@@extension_id__ 由 Chrome 代換) */
+  src: url(chrome-extension://__MSG_@@extension_id__/vendor/material-symbols/material-symbols-rounded.woff2) format("woff2");
+}
+
+html[data-mdr] {
+  --mdr-ease: cubic-bezier(0.2, 0, 0, 1); /* Material 3 標準曲線:快出慢停 */
+  --mdr-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* 帶一點回彈(開關、選中) */
+  --mdr-fast: 120ms;
+  --mdr-med: 220ms;
+  --mdr-slow: 320ms;
+  --mdr-hover: color-mix(in srgb, var(--mdr-accent) 10%, transparent);
+  --mdr-press: color-mix(in srgb, var(--mdr-accent) 18%, transparent);
+  --mdr-ring: 0 0 0 3px color-mix(in srgb, var(--mdr-accent) 35%, transparent);
+}
+
+/* ---------- 圖示 ----------
+   <span class="mdr-icon" data-icon="settings" aria-hidden="true"></span>
+   用 ::before 放圖示名稱(字型連字),名稱不會混進文字內容、不會被搜尋到 */
+html[data-mdr] .mdr-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  font-size: var(--mdr-icon-size, 20px);
+  line-height: 1;
+  vertical-align: -0.2em;
+  color: inherit;
+  user-select: none;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
+  transition: font-variation-settings var(--mdr-med) var(--mdr-ease), transform var(--mdr-med) var(--mdr-ease), color var(--mdr-med) var(--mdr-ease);
+}
+html[data-mdr] .mdr-icon::before {
+  content: attr(data-icon);
+  font-family: "MDR Symbols";
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+html[data-mdr] .mdr-icon.is-filled { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+
+/* ---------- 可互動元素的共同手感 ----------
+   滑過:底色淡入、圖示變實心加粗;按下:微縮 + 水波紋;鍵盤聚焦:外框光暈 */
+html[data-mdr] .mdr-ix {
+  position: relative;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--mdr-med) var(--mdr-ease),
+    color var(--mdr-med) var(--mdr-ease),
+    border-color var(--mdr-med) var(--mdr-ease),
+    box-shadow var(--mdr-med) var(--mdr-ease),
+    transform var(--mdr-fast) var(--mdr-ease);
+}
+html[data-mdr] .mdr-ix:hover .mdr-icon,
+html[data-mdr] .mdr-ix:focus-visible .mdr-icon { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+html[data-mdr] .mdr-ix:active { transform: scale(0.96); transition-duration: 60ms; }
+html[data-mdr] .mdr-ix:focus-visible { outline: none; box-shadow: var(--mdr-ring); }
+html[data-mdr] .mdr-ix:disabled { opacity: 0.45; cursor: default; transform: none; }
+html[data-mdr] .mdr-ix:disabled .mdr-icon { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20; }
+
+/* 水波紋(由 core/ui.js 在按下的位置產生;放在按鈕內的裁切框裡,提示泡泡才不會被裁掉) */
+html[data-mdr] .mdr-ripple-box { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; }
+html[data-mdr] .mdr-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.16;
+  pointer-events: none;
+  transform: scale(0);
+  animation: mdr-ripple 520ms var(--mdr-ease) forwards;
+}
+html[data-mdr] .mdr-ripple.is-leaving { animation: mdr-ripple 520ms var(--mdr-ease) forwards, mdr-ripple-out 260ms linear forwards; }
+@keyframes mdr-ripple { to { transform: scale(1); } }
+@keyframes mdr-ripple-out { to { opacity: 0; } }
+
+/* ---------- 按鈕樣式 ---------- */
+/* 主要按鈕:實心紫 */
+html[data-mdr] .mdr-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--mdr-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+html[data-mdr] .mdr-btn-primary:hover { box-shadow: 0 6px 16px color-mix(in srgb, var(--mdr-accent) 40%, transparent); transform: translateY(-1px); }
+html[data-mdr] .mdr-btn-primary:active { transform: translateY(0) scale(0.97); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+/* 次要按鈕:外框 */
+html[data-mdr] .mdr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--mdr-line);
+  border-radius: 12px;
+  background: var(--mdr-bg);
+  color: var(--mdr-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+html[data-mdr] .mdr-btn:hover { background: var(--mdr-hover); border-color: color-mix(in srgb, var(--mdr-accent) 40%, var(--mdr-line)); }
+/* 危險動作 */
+html[data-mdr] .mdr-btn.is-danger:hover { background: rgba(229, 72, 77, 0.1); border-color: #e5484d; color: #e5484d; }
+/* 文字按鈕 */
+html[data-mdr] .mdr-btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--mdr-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+html[data-mdr] .mdr-btn-text:hover { background: var(--mdr-hover); }
+/* 圓形圖示按鈕 */
+html[data-mdr] .mdr-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--mdr-muted);
+  cursor: pointer;
+}
+html[data-mdr] .mdr-icon-btn:hover { background: var(--mdr-hover); color: var(--mdr-accent); }
+
+/* ---------- 提示泡泡(取代反應慢的瀏覽器預設提示)---------- */
+html[data-mdr] [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--mdr-fg);
+  color: var(--mdr-bg);
+  font: 500 12px/1.4 -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity var(--mdr-fast) var(--mdr-ease), transform var(--mdr-fast) var(--mdr-ease);
+}
+html[data-mdr] [data-tip]:hover::after,
+html[data-mdr] [data-tip]:focus-visible::after { opacity: 1; transform: none; transition-delay: 350ms; }
+
+/* ---------- 開關(Material 3:開啟時圓鈕變大、帶勾)---------- */
+html[data-mdr] .mdr-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--mdr-faint);
+  border-radius: 999px;
+  background: var(--mdr-bg-2);
+  cursor: pointer;
+  transition: background-color var(--mdr-med) var(--mdr-ease), border-color var(--mdr-med) var(--mdr-ease), box-shadow var(--mdr-med) var(--mdr-ease);
+}
+html[data-mdr] .mdr-switch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mdr-faint);
+  transform: translateY(-50%);
+  transition: left var(--mdr-slow) var(--mdr-ease-spring), width var(--mdr-med) var(--mdr-ease), height var(--mdr-med) var(--mdr-ease), background-color var(--mdr-med) var(--mdr-ease);
+}
+html[data-mdr] .mdr-switch::after { /* 開啟時圓鈕上的勾 */
+  content: "check";
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  font: 16px/1 "MDR Symbols";
+  font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 20;
+  color: var(--mdr-accent);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.4);
+  transition: left var(--mdr-slow) var(--mdr-ease-spring), opacity var(--mdr-med) var(--mdr-ease), transform var(--mdr-med) var(--mdr-ease-spring);
+}
+html[data-mdr] .mdr-switch:hover::before { width: 20px; height: 20px; left: 4px; }
+html[data-mdr] .mdr-switch:active::before { width: 24px; height: 24px; left: 2px; }
+html[data-mdr] .mdr-switch[aria-checked="true"] { background: var(--mdr-accent); border-color: var(--mdr-accent); }
+html[data-mdr] .mdr-switch[aria-checked="true"]::before { left: 22px; width: 24px; height: 24px; background: #fff; }
+html[data-mdr] .mdr-switch[aria-checked="true"]:active::before { left: 20px; width: 28px; height: 28px; }
+html[data-mdr] .mdr-switch[aria-checked="true"]::after { left: 26px; opacity: 1; transform: translateY(-50%) scale(1); }
+html[data-mdr] .mdr-switch:focus-visible { outline: none; box-shadow: var(--mdr-ring); }
+
+/* ---------- 分段按鈕:選中色塊滑到新位置 ---------- */
+html[data-mdr] .mdr-seg {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 4px;
+  border: 1px solid var(--mdr-line);
+  border-radius: 12px;
+  background: var(--mdr-bg-2);
+}
+html[data-mdr] .mdr-seg-thumb { /* 由 JS 設定 --x、--w */
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--w, 0);
+  border-radius: 9px;
+  background: var(--mdr-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  transform: translateX(var(--x, 0));
+  transition: transform var(--mdr-slow) var(--mdr-ease), width var(--mdr-slow) var(--mdr-ease);
+}
+html[data-mdr] .mdr-seg button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--mdr-muted);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+html[data-mdr] .mdr-seg button:hover { color: var(--mdr-fg); }
+html[data-mdr] .mdr-seg button[aria-pressed="true"] { color: var(--mdr-fg); font-weight: 600; }
+html[data-mdr] .mdr-seg button[aria-pressed="true"] .mdr-icon { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; color: var(--mdr-accent); }
+
+/* ---------- 出現動畫 ---------- */
+@keyframes mdr-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes mdr-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes mdr-spin-in { from { transform: rotate(-120deg) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* 使用者在系統設定了「減少動態效果」:動畫全部變成瞬間完成 */
+@media (prefers-reduced-motion: reduce) {
+  html[data-mdr] *,
+  html[data-mdr] *::before,
+  html[data-mdr] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
+}

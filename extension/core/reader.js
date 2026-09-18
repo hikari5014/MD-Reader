@@ -4,14 +4,9 @@
   const WIDE = '(min-width: 1100px)'; // 夠寬才把目錄常駐在左邊,窄螢幕改成浮動抽屜
   const THEME_ORDER = ['system', 'light', 'dark', 'sepia'];
   const THEME_LABEL = { system: '跟隨系統', light: '淺色', dark: '深色', sepia: '護眼' };
-  const svg = (body) => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
-  const ICONS = {
-    toc: svg('<path d="M3 6h18M3 12h12M3 18h15"/>'),
-    theme: svg('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>'),
-    raw: svg('<path d="m8 6-6 6 6 6M16 6l6 6-6 6"/>'),
-    print: svg('<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'),
-    settings: svg('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'),
-  };
+  // 工具列圖示(Google Material Symbols);主題按鈕的圖示跟著目前主題變
+  const ICONS = { toc: 'toc', raw: 'code', print: 'print', settings: 'settings' };
+  const THEME_ICON = { system: 'brightness_auto', light: 'light_mode', dark: 'dark_mode', sepia: 'eyeglasses' };
 
   async function mount(doc, text, fallbackTitle) {
     const settings = await MDR.loadSettings();
@@ -58,7 +53,15 @@
       MDR.applySettings(doc, s);
       shell.dataset.toc = toc && s.toc && wide.matches ? 'open' : 'closed';
       const btn = shell.querySelector('[data-action="theme"]');
-      btn.title = `主題:${THEME_LABEL[s.theme]}(點一下切換)`;
+      btn.dataset.tip = `主題:${THEME_LABEL[s.theme]}(點一下切換)`;
+      btn.setAttribute('aria-label', btn.dataset.tip);
+      const themeIcon = btn.querySelector('.mdr-icon');
+      if (themeIcon.dataset.icon !== THEME_ICON[s.theme]) {
+        themeIcon.dataset.icon = THEME_ICON[s.theme];
+        themeIcon.classList.remove('is-spinning');
+        void themeIcon.offsetWidth; // 重新觸發「轉一圈出現」動畫
+        themeIcon.classList.add('is-spinning');
+      }
       if (propsPanel) propsPanel.hidden = !s.showProperties;
       progress.hidden = !s.progressBar;
       MDR.linkWikilinks(article, s.obsidianVault);
@@ -90,7 +93,7 @@
     if (!(await MDR.hasUnseenUpdate())) return;
     const btn = shell.querySelector('[data-action="settings"]');
     btn.classList.add('has-update');
-    btn.title = '有新版本!點我看更新日誌';
+    btn.dataset.tip = '有新版本!點我看更新日誌';
   }
 
   // 頂端進度條:讀到哪裡
@@ -117,12 +120,14 @@
     for (const [action, title] of buttons) {
       const b = doc.createElement('button');
       b.type = 'button';
+      b.className = 'mdr-ix';
       b.dataset.action = action;
-      b.title = title;
+      b.dataset.tip = title;
       b.setAttribute('aria-label', title);
-      b.innerHTML = ICONS[action];
+      b.append(MDR.icon(ICONS[action] || THEME_ICON.system, doc));
       bar.append(b);
     }
+    MDR.enableRipple(bar);
     bar.addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -131,7 +136,9 @@
         raw.hidden = !raw.hidden;
         article.hidden = !raw.hidden;
         b.classList.toggle('is-on', !raw.hidden);
-        b.title = raw.hidden ? '原始碼' : '回到排版畫面';
+        b.dataset.tip = raw.hidden ? '原始碼' : '回到排版畫面';
+        b.setAttribute('aria-label', b.dataset.tip);
+        b.querySelector('.mdr-icon').dataset.icon = raw.hidden ? 'code' : 'article';
       } else if (action === 'print') {
         globalThis.print();
       } else if (action === 'settings') {

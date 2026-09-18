@@ -4,22 +4,27 @@
 <meta charset="utf-8">
 <title>開啟 Markdown 檔 — MD隨手讀</title>
 <link rel="stylesheet" href="../styles/reader.css">
+<link rel="stylesheet" href="../styles/ui.css">
 <style>
-  .op { max-width: 520px; margin: 14vh auto 0; padding: 0 24px; font-size: 16px; text-align: center; }
-  .op-icon { font-size: 52px; }
-  .op h1 { margin: 8px 0 24px; font-size: 22px; }
-  .op-btn { display: inline-block; padding: 12px 28px; border-radius: 10px; background: var(--mdr-accent); color: #fff; font-weight: 600; cursor: pointer; }
-  .op-btn:hover { filter: brightness(1.08); }
-  .op-hint { margin-top: 28px; padding: 12px 16px; border-radius: 10px; background: var(--mdr-bg-2); color: var(--mdr-muted); line-height: 1.7; }
+  .op { max-width: 540px; margin: 14vh auto 0; padding: 0 24px; font-size: 16px; text-align: center; animation: mdr-rise var(--mdr-slow) var(--mdr-ease) both; }
+  .op-hero { display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; border-radius: 26px; background: var(--mdr-accent-soft); color: var(--mdr-accent); animation: op-float 3.2s ease-in-out infinite; }
+  .op-hero .mdr-icon { --mdr-icon-size: 48px; font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48; }
+  @keyframes op-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .op h1 { margin: 20px 0 24px; font-size: 22px; }
+  .op .mdr-btn-primary { padding: 13px 28px; font-size: 16px; }
+  .op .mdr-btn-primary:hover .mdr-icon { transform: translateY(-2px); }
+  .op-hint { display: flex; gap: 10px; align-items: flex-start; margin-top: 28px; padding: 14px 18px; border-radius: 14px; background: var(--mdr-bg-2); color: var(--mdr-muted); line-height: 1.7; text-align: left; }
+  .op-hint .mdr-icon { margin-top: 3px; color: #e0a800; font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 20; }
 </style>
 </head>
 <body>
 <main class="op">
-  <div class="op-icon">📂</div>
+  <div class="op-hero"><span class="mdr-icon" data-icon="folder_open" aria-hidden="true"></span></div>
   <h1>開啟電腦裡的 Markdown 檔</h1>
-  <label class="op-btn">選擇檔案<input type="file" id="file" accept=".md,.markdown,.mdown,.mkd,.mkdn,.txt,text/markdown,text/plain" hidden></label>
-  <p class="op-hint">💡 更好的方法:直接把 .md 檔<b>拖進這個分頁</b>(或任何分頁)。<br>用拖的,文件裡的圖片也能正常顯示。</p>
+  <label class="mdr-btn-primary mdr-ix" tabindex="0"><span class="mdr-icon" data-icon="upload_file" aria-hidden="true"></span>選擇檔案<input type="file" id="file" accept=".md,.markdown,.mdown,.mkd,.mkdn,.txt,text/markdown,text/plain" hidden></label>
+  <p class="op-hint"><span class="mdr-icon" data-icon="lightbulb" aria-hidden="true"></span><span>更好的方法:直接把 .md 檔<b>拖進這個分頁</b>(或任何分頁)。<br>用拖的,文件裡的圖片也能正常顯示。</span></p>
 </main>
+<script src="../core/ui.js"></script>
 <script src="../core/detect.js"></script>
 <script src="../core/settings.js"></script>
 <script src="../core/library.js"></script>

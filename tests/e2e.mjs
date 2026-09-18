@@ -580,6 +580,7 @@ await check('8 Obsidian', '提示框:類型、標題、收合、巢狀、別名'
     };
   });
   await page.click('.callout[data-callout="warning"] > summary');
+  await page.waitForTimeout(500); // 收合內容是平滑展開(約 0.3 秒)
   const unfolded = await page.isVisible('text=MDR-FOLD-OK');
   await page.screenshot({ path: join(OUTPUT, 'obsidian-callouts.png'), fullPage: true });
   await page.close();
@@ -719,7 +720,7 @@ await context.route(/^https:\/\/(drive|docs)\.google\.com\/(file|document|drive)
 });
 const driveButton = (page) => page.evaluate(() => {
   const b = document.getElementById('mdr-drive-open');
-  return b && b.style.display !== 'none' ? b.textContent : null;
+  return b?.classList.contains('is-visible') ? b.textContent : null;
 });
 await check('9 Google Drive', '預覽頁(.md)出現按鈕,按下去開閱讀頁並帶上檔案編號與檔名', async () => {
   const page = await open(`https://drive.google.com/file/d/${DRIVE_MD}/view`);
@@ -924,6 +925,107 @@ await check('10 打磨', 'Windows 後援:Chrome 把本機 .md 當下載 → 閱�
   const n = (await notifications()).length;
   assert(r.mdr === 'rendered' && r.zhOk && url.searchParams.get('src') === src && n === 0, JSON.stringify({ mdr: r.mdr, src: url.searchParams.get('src'), n }));
   return '開原檔、不跳下載通知';
+});
+
+// ========== 11 介面與互動(v1.1)==========
+const iconFontLoaded = (page) => page.evaluate(async () => {
+  await document.fonts.ready;
+  return [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'MDR Symbols' && f.status === 'loaded');
+});
+await check('11 介面互動', 'Material 圖示字型在各處都載入(含嚴格 CSP 網頁、Drive)', async () => {
+  const places = {
+    本機閱讀: fileUrl('sample-zh.md'),
+    嚴格CSP網頁: `${BASE}/csp/test.md`,
+    小視窗: POPUP_URL,
+    設定頁: OPTIONS_URL,
+    閱讀頁: `chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(fileUrl('sample-zh.md'))}`,
+  };
+  const failed = [];
+  for (const [name, url] of Object.entries(places)) {
+    const page = await open(url);
+    if (!(await iconFontLoaded(page))) failed.push(name);
+    await page.close();
+  }
+  await context.route(/^https:\/\/drive\.google\.com\/file\//, (route) => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<title>週會紀錄.md - Google 雲端硬碟</title><body>預覽</body>' }));
+  const drive = await open(`https://drive.google.com/file/d/${DRIVE_MD}/view`);
+  await drive.waitForTimeout(1200);
+  if (!(await iconFontLoaded(drive))) failed.push('Drive 按鈕');
+  await drive.screenshot({ path: join(OUTPUT, 'ui-drive-button.png') });
+  await drive.close();
+  await context.unroute(/^https:\/\/drive\.google\.com\/file\//);
+  assert(!failed.length, `沒載入:${failed.join('、')}`);
+  return `${Object.keys(places).length + 1} 個地方都載入`;
+});
+await check('11 介面互動', '工具列:提示泡泡、水波紋、主題圖示跟著變', async () => {
+  const page = await open(fileUrl('toc-long.md'));
+  await page.hover('[data-action="print"]');
+  await page.waitForTimeout(700);
+  const tipOpacity = await page.$eval('[data-action="print"]', (b) => getComputedStyle(b, '::after').opacity);
+  const tipText = await page.$eval('[data-action="print"]', (b) => getComputedStyle(b, '::after').content);
+  await page.screenshot({ path: join(OUTPUT, 'ui-toolbar-hover.png'), clip: { x: 900, y: 0, width: 400, height: 120 } });
+  const box = await page.$eval('[data-action="raw"]', (b) => { const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  await page.mouse.move(box.x, box.y);
+  await page.mouse.down();
+  const ripples = await page.$$eval('[data-action="raw"] .mdr-ripple', (r) => r.length);
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  const rawIcon = await page.$eval('[data-action="raw"] .mdr-icon', (i) => i.dataset.icon);
+  await page.click('[data-action="raw"]');
+  const icons = [];
+  for (let i = 0; i < 4; i++) {
+    icons.push(await page.$eval('[data-action="theme"] .mdr-icon', (el) => el.dataset.icon));
+    await page.click('[data-action="theme"]');
+    await page.waitForTimeout(250);
+  }
+  await page.close();
+  await resetSettings();
+  assert(tipOpacity === '1' && tipText.includes('列印') && ripples === 1 && rawIcon === 'article'
+    && icons.join() === 'brightness_auto,light_mode,dark_mode,eyeglasses', JSON.stringify({ tipOpacity, tipText, ripples, rawIcon, icons }));
+  return '泡泡「列印 / 存成 PDF」、水波紋、原始碼圖示互換、主題圖示 4 種';
+});
+await check('11 介面互動', '設定頁:分段按鈕色塊滑到選中的那一顆、開關', async () => {
+  const page = await open(OPTIONS_URL, 1200);
+  await page.click('.opt-seg[data-key="theme"] button[data-value="dark"]');
+  await page.waitForTimeout(500);
+  const r = await page.evaluate(() => {
+    const seg = document.querySelector('.opt-seg[data-key="theme"]');
+    const on = seg.querySelector('button[aria-pressed="true"]');
+    const thumb = seg.querySelector('.mdr-seg-thumb');
+    return { on: on.dataset.value, x: thumb.style.getPropertyValue('--x'), want: `${on.offsetLeft}px`, w: thumb.style.getPropertyValue('--w') };
+  });
+  await page.screenshot({ path: join(OUTPUT, 'ui-options-dark.png') });
+  await page.goto(`${OPTIONS_URL}#reading`);
+  await page.waitForTimeout(400);
+  await page.click('.mdr-switch[data-key="progressBar"]');
+  await page.waitForTimeout(400);
+  const sw1 = await page.getAttribute('.mdr-switch[data-key="progressBar"]', 'aria-checked');
+  await page.screenshot({ path: join(OUTPUT, 'ui-options-reading.png') });
+  await page.goto(`${OPTIONS_URL}#download`);
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: join(OUTPUT, 'ui-options-download.png') });
+  await page.close();
+  await resetSettings();
+  assert(r.on === 'dark' && r.x === r.want && r.w && sw1 === 'false', JSON.stringify({ ...r, sw1 }));
+  return `色塊移到「深色」(${r.x});開關可切換`;
+});
+await check('11 介面互動', '小視窗:最近開過滑過時浮出箭頭', async () => {
+  await (await open(fileUrl('sample-zh.md'))).close();
+  const popup = await open(POPUP_URL, 360);
+  await popup.hover('#recent li button');
+  await popup.waitForTimeout(400);
+  const arrow = await popup.$eval('#recent li .pp-arrow', (a) => getComputedStyle(a).opacity);
+  await popup.screenshot({ path: join(OUTPUT, 'ui-popup.png') });
+  await popup.close();
+  assert(arrow === '1', `箭頭透明度 ${arrow}`);
+  return '箭頭出現';
+});
+await check('11 介面互動', '系統「減少動態效果」時動畫關閉', async () => {
+  const page = await open(fileUrl('sample-zh.md'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const d = await page.$eval('[data-action="theme"]', (b) => getComputedStyle(b).transitionDuration);
+  await page.close();
+  assert(d.split(',').every((x) => parseFloat(x) <= 0.001), `動畫時間 ${d}`);
+  return `動畫時間 ${d.split(',')[0]}`;
 });
 
 // ========== 2 下載(三種模式)==========

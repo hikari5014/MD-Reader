@@ -2,14 +2,14 @@
 
 Chrome 插件:.md 檔不管來自**電腦本機、網路網址、下載、Google Drive**,打開就是排版好的 Obsidian 風閱讀畫面;看得懂 Obsidian 的屬性表、雙中括號連結、提示框、流程圖、數學公式。只讀、自用、不上架。
 
-目前版本:**v1.0.0**(正式版)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
+目前版本:**v1.1.0**(介面與互動重新設計)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
 
 ## 安裝(載入未封裝)
 
 1. Chrome 網址列輸入 `chrome://extensions`
 2. 右上角打開 **開發人員模式**
 3. 按 **載入未封裝項目**,選這個專案裡的 `extension/` 資料夾
-   (別台電腦:解壓 `dist/md-suishoudu-v1.0.0.zip`,選解壓出來的資料夾)
+   (別台電腦:解壓 `dist/md-suishoudu-v1.1.0.zip`,選解壓出來的資料夾)
 4. 在「MD隨手讀」的 **詳細資料** 裡打開 **允許存取檔案網址**(看本機 .md 需要)
 5. 建議:設定頁「閱讀」→「Obsidian 保險庫名稱」填 `LLM Wiki`,筆記裡的連結就能直接開 Obsidian
 
@@ -41,8 +41,8 @@ extension/        插件本體(直接載入 Chrome,不需建置)
                   diagram 流程圖、reader 閱讀畫面
   pages/          閱讀頁 viewer、小視窗 popup、開啟檔案 open、設定頁 options、權限引導頁 onboarding
   rules/          網路規則:讓強制下載的 .md 直接顯示、補中文編碼
-  styles/         閱讀畫面樣式(四種主題)
-  vendor/         第三方元件(版本見 vendor/VERSIONS.md)
+  styles/         ui.css 設計系統(圖示、動畫、按鈕)、reader.css 閱讀畫面(四種主題)、drive.css Drive 按鈕
+  vendor/         第三方元件(版本見 vendor/VERSIONS.md)、material-symbols/ 圖示字型子集
 docs/             plans 計劃書・changelog 更新日誌・verification 驗收清單・progress 進度・guide 使用說明
 test-files/       測試用 .md(含惡意範例)
 scripts/          sync 同步元件與文件、make-icons 產生圖示、release 發布
@@ -54,8 +54,9 @@ tests/            e2e.mjs 自動化測試、vault-check.mjs 真實筆記驗收�
 ```bash
 npm install          # 安裝開發工具(只有開發需要,插件本身不用)
 npm run sync         # 第三方元件 → extension/vendor/;CHANGELOG、GUIDE → extension/
-npm run icons        # 重新產生圖示
-npm test             # 自動化測試(Chrome for Testing 載入插件跑 73 項,其中 2 項需連網)
+npm run icons        # 重新產生插件圖示(PNG)
+npm run icons:font   # 重新下載 Material Symbols 圖示字型(新增介面圖示時,先把名稱加進 scripts/fetch-icons.mjs)
+npm test             # 自動化測試(Chrome for Testing 載入插件跑 80 項,其中 2 項需連網)
 npm run test:vault   # 真實筆記驗收(預設 ~/Obsidian/LLM Wiki/wiki 挑 20 篇;MDR_VAULT、MDR_VAULT_COUNT 可調)
 npm run release      # 發布:打包 dist/md-suishoudu-v{版本}.zip + 建 git 版本標記(先 commit)
 ```

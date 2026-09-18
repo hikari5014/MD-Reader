@@ -1,7 +1,19 @@
 // 工具列小視窗:開啟檔案、貼上文字或網址、最近開過、設定入口
 // 注意:小視窗一失去焦點就會關閉,所以「選檔」改開一個分頁來做(Mac 的選檔視窗會搶走焦點)
-const KIND = { file: ['📄', '本機'], web: ['🌐', '網路'], drive: ['☁️', 'Drive'], text: ['📋', '貼上'] };
+const KIND = { file: ['description', '本機'], web: ['language', '網路'], drive: ['cloud', 'Drive'], text: ['content_paste', '貼上'] };
 document.getElementById('version').textContent = `v${chrome.runtime.getManifest().version}`;
+MDR.enableRipple(document.body);
+
+// 按鈕:圖示 + 文字
+function iconButton(iconName, text, className) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = `${className} mdr-ix`;
+  const label = document.createElement('span');
+  label.textContent = text;
+  b.append(MDR.icon(iconName), label);
+  return b;
+}
 
 // 開新分頁後關掉小視窗
 async function openTab(url) {
@@ -48,11 +60,23 @@ async function renderRecent(settings, fileAccess) {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button';
+    b.className = 'mdr-ix';
     b.title = item.src || item.title;
-    b.innerHTML = '<span class="pp-kind"></span><span class="pp-title"></span><span class="pp-meta"></span>';
-    b.querySelector('.pp-kind').textContent = icon;
-    b.querySelector('.pp-title').textContent = item.title;
-    b.querySelector('.pp-meta').textContent = `${label} · ${timeAgo(item.time)}`;
+    const kind = document.createElement('span');
+    kind.className = 'pp-kind';
+    kind.append(MDR.icon(icon));
+    const text = document.createElement('span');
+    text.className = 'pp-text';
+    const title = document.createElement('span');
+    title.className = 'pp-title';
+    title.textContent = item.title;
+    const meta = document.createElement('span');
+    meta.className = 'pp-meta';
+    meta.textContent = `${label} · ${timeAgo(item.time)}`;
+    text.append(title, meta);
+    const arrow = MDR.icon('chevron_right');
+    arrow.classList.add('pp-arrow');
+    b.append(kind, text, arrow);
     // 本機檔要有檔案權限才開得了(Chrome 118+),沒有就帶去引導頁
     b.onclick = () => openTab(item.kind === 'file' && !fileAccess ? chrome.runtime.getURL('pages/onboarding.html') : MDR.reopenUrl(item));
     li.append(b);
@@ -70,7 +94,7 @@ async function showDriveCard() {
   const box = document.getElementById('drive');
   const title = document.createElement('div');
   title.className = 'pp-drive-title';
-  title.textContent = '☁️ Google Drive';
+  title.append(MDR.icon('cloud'), 'Google Drive');
   const body = document.createElement('div');
   box.replaceChildren(title, body);
   box.hidden = false;
@@ -80,9 +104,7 @@ async function showDriveCard() {
   } catch {
     // 插件更新前就開著的分頁,沒有 MD隨手讀 的小程式(Chrome 的規定)
     body.textContent = '這個分頁要先重新整理,MD隨手讀 才讀得到 Drive 的檔案。';
-    const reload = document.createElement('button');
-    reload.type = 'button';
-    reload.textContent = '🔄 重新整理這個分頁';
+    const reload = iconButton('refresh', '重新整理這個分頁', 'mdr-btn');
     reload.onclick = () => { chrome.tabs.reload(tab.id); window.close(); };
     box.append(reload);
     return;
@@ -92,10 +114,9 @@ async function showDriveCard() {
     return;
   }
   body.remove();
-  const open = document.createElement('button');
-  open.type = 'button';
+  const open = iconButton('auto_stories', `用 MD隨手讀 開啟 ${file.name}`, 'mdr-btn-primary');
   open.id = 'drive-open';
-  open.textContent = `📖 用 MD隨手讀 開啟 ${file.name}`;
+  open.lastChild.className = 'pp-drive-name';
   open.onclick = () => openTab(`${MDR.viewerUrl({ src: MDR.driveUrl(file.id) })}&name=${encodeURIComponent(file.name)}`);
   box.append(open);
 }
