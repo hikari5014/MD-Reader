@@ -71,5 +71,6 @@ document.getElementById('fix-access').onclick = () => openTab(chrome.runtime.get
   const [settings, fileAccess] = await Promise.all([MDR.loadSettings(), chrome.extension.isAllowedFileSchemeAccess()]);
   MDR.applySettings(document, settings);
   document.getElementById('warn').hidden = fileAccess;
+  if (await MDR.hasUnseenUpdate()) document.getElementById('open-changelog').classList.add('has-update');
   renderRecent(settings, fileAccess);
 })();

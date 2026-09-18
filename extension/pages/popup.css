@@ -67,3 +67,4 @@ html[data-mdr-theme="dark"] .pp-warn { background: #3a2a12; color: #f5c27a; }
 .pp-foot { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--mdr-line); }
 .pp-link { padding: 2px 4px; border: 0; background: none; color: var(--mdr-accent); font: inherit; cursor: pointer; }
 .pp-link:hover { text-decoration: underline; }
+.pp-link.has-update::after { content: "新版本"; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 600; }

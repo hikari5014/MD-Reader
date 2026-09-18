@@ -62,7 +62,7 @@ html[data-mdr][data-mdr-theme="dark"] {
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
-  html[data-mdr]:not([data-mdr-theme="light"]) {
+  html[data-mdr]:not([data-mdr-theme="light"]):not([data-mdr-theme="sepia"]) {
     --mdr-bg: #1e1e1e;
     --mdr-bg-2: #262626;
     --mdr-fg: #dcddde;
@@ -89,6 +89,21 @@ html[data-mdr][data-mdr-theme="dark"] {
     --mdr-c-gray: 158, 158, 158;
     color-scheme: dark;
   }
+}
+
+/* 護眼:米黃底、深褐字 */
+html[data-mdr][data-mdr-theme="sepia"] {
+  --mdr-bg: #f5efe0;
+  --mdr-bg-2: #ece3cd;
+  --mdr-fg: #3b3024;
+  --mdr-muted: #76664f;
+  --mdr-faint: #a4937a;
+  --mdr-line: #ddd0b3;
+  --mdr-accent: #9a5b13;
+  --mdr-accent-soft: rgba(154, 91, 19, 0.12);
+  --mdr-code-bg: #ece3cd;
+  --mdr-shadow: 0 6px 24px rgba(80, 60, 20, 0.12);
+  color-scheme: light;
 }
 
 /* ---------- 基底 ---------- */
@@ -187,6 +202,14 @@ html[data-mdr] .mdr-toolbar button {
 }
 html[data-mdr] .mdr-toolbar button:hover { background: var(--mdr-accent-soft); color: var(--mdr-fg); }
 html[data-mdr] .mdr-toolbar button.is-on { background: var(--mdr-accent); color: #fff; }
+
+/* 新版本小紅點 */
+html[data-mdr] .mdr-toolbar button.has-update { position: relative; color: var(--mdr-accent); }
+html[data-mdr] .mdr-toolbar button.has-update::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: #e5484d; }
+
+/* 頂端閱讀進度條 */
+html[data-mdr] .mdr-progress { position: fixed; inset: 0 0 auto 0; z-index: 30; height: 3px; pointer-events: none; }
+html[data-mdr] .mdr-progress span { display: block; width: 0; height: 100%; background: var(--mdr-accent); transition: width 0.1s linear; }
 
 /* ---------- 內文 ---------- */
 html[data-mdr] .mdr-body > :first-child { margin-top: 0; }
@@ -344,7 +367,8 @@ html[data-mdr] .mdr-error { max-width: 560px; margin: 80px auto; padding: 24px; 
 /* 列印 / 存 PDF:只留內文 */
 @media print {
   html[data-mdr] .mdr-toc,
-  html[data-mdr] .mdr-toolbar { display: none !important; }
+  html[data-mdr] .mdr-toolbar,
+  html[data-mdr] .mdr-progress { display: none !important; }
   html[data-mdr] .mdr-shell[data-toc="open"] { padding-left: 0; }
   html[data-mdr] .mdr-page { max-width: none; padding: 0; }
 }

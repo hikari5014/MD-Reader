@@ -2,13 +2,14 @@
 // 就地排版(content script)與閱讀頁(viewer)共用
 (() => {
   const WIDE = '(min-width: 1100px)'; // 夠寬才把目錄常駐在左邊,窄螢幕改成浮動抽屜
-  const THEME_ORDER = ['system', 'light', 'dark'];
-  const THEME_LABEL = { system: '跟隨系統', light: '淺色', dark: '深色' };
+  const THEME_ORDER = ['system', 'light', 'dark', 'sepia'];
+  const THEME_LABEL = { system: '跟隨系統', light: '淺色', dark: '深色', sepia: '護眼' };
   const svg = (body) => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
   const ICONS = {
     toc: svg('<path d="M3 6h18M3 12h12M3 18h15"/>'),
     theme: svg('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>'),
     raw: svg('<path d="m8 6-6 6 6 6M16 6l6 6-6 6"/>'),
+    print: svg('<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'),
     settings: svg('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'),
   };
 
@@ -40,8 +41,12 @@
     shell.className = 'mdr-shell';
     const toc = buildToc(doc, article);
     if (toc) shell.append(toc);
-    shell.append(page, buildToolbar(doc, { article, raw, shell, hasToc: !!toc }));
+    const progress = doc.createElement('div');
+    progress.className = 'mdr-progress';
+    progress.append(doc.createElement('span'));
+    shell.append(page, buildToolbar(doc, { article, raw, shell, hasToc: !!toc }), progress);
     doc.body.replaceChildren(shell);
+    markUpdate(shell);
 
     let current = settings;
     let diagramsDark = null;
@@ -54,6 +59,7 @@
       const btn = shell.querySelector('[data-action="theme"]');
       btn.title = `主題:${THEME_LABEL[s.theme]}(點一下切換)`;
       if (propsPanel) propsPanel.hidden = !s.showProperties;
+      progress.hidden = !s.progressBar;
       MDR.linkWikilinks(article, s.obsidianVault);
       // 流程圖的配色跟著深淺色走,變了才重畫
       const dark = s.theme === 'dark' || (s.theme === 'system' && systemDark.matches);
@@ -68,13 +74,33 @@
     systemDark.addEventListener('change', () => apply(current));
     shell.addEventListener('mdr-action', async (e) => {
       const action = e.detail;
-      if (action === 'theme') MDR.saveSettings({ theme: THEME_ORDER[(THEME_ORDER.indexOf(current.theme) + 1) % 3] });
+      if (action === 'theme') MDR.saveSettings({ theme: THEME_ORDER[(THEME_ORDER.indexOf(current.theme) + 1) % THEME_ORDER.length] });
       if (action === 'toc') {
         if (wide.matches) MDR.saveSettings({ toc: shell.dataset.toc !== 'open' }); // 寬螢幕:記住偏好
         else shell.dataset.toc = shell.dataset.toc === 'open' ? 'closed' : 'open'; // 窄螢幕:只開這一次
       }
     });
     if (toc) watchScroll(doc, article, toc);
+    watchProgress(doc, progress.firstChild);
+  }
+
+  // 插件更新後還沒看過更新日誌:⚙️ 加小紅點,點了直接到更新日誌
+  async function markUpdate(shell) {
+    if (!(await MDR.hasUnseenUpdate())) return;
+    const btn = shell.querySelector('[data-action="settings"]');
+    btn.classList.add('has-update');
+    btn.title = '有新版本!點我看更新日誌';
+  }
+
+  // 頂端進度條:讀到哪裡
+  function watchProgress(doc, bar) {
+    const update = () => {
+      const max = doc.documentElement.scrollHeight - globalThis.innerHeight;
+      bar.style.width = `${max > 0 ? Math.min(100, (globalThis.scrollY / max) * 100) : 100}%`;
+    };
+    doc.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    globalThis.addEventListener('resize', update);
+    update();
   }
 
   function buildToolbar(doc, { article, raw, shell, hasToc }) {
@@ -84,6 +110,7 @@
       hasToc && ['toc', '目錄'],
       ['theme', '主題'],
       ['raw', '原始碼'],
+      ['print', '列印 / 存成 PDF'],
       ['settings', '設定'],
     ].filter(Boolean);
     for (const [action, title] of buttons) {
@@ -104,8 +131,10 @@
         article.hidden = !raw.hidden;
         b.classList.toggle('is-on', !raw.hidden);
         b.title = raw.hidden ? '原始碼' : '回到排版畫面';
+      } else if (action === 'print') {
+        globalThis.print();
       } else if (action === 'settings') {
-        chrome.runtime.sendMessage({ type: 'open-options' });
+        chrome.runtime.sendMessage({ type: 'open-options', tab: b.classList.contains('has-update') ? 'changelog' : '' });
       } else {
         shell.dispatchEvent(new CustomEvent('mdr-action', { detail: action }));
       }

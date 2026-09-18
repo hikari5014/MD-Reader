@@ -777,6 +777,81 @@ await check('9 Google Drive', '最近開過標示為 Drive;關掉設定就不顯
 });
 await context.unroute(/^https:\/\/(drive|docs)\.google\.com\/(file|document|drive)\//);
 
+// ========== 10 打磨(v0.6)==========
+await check('10 打磨', '護眼主題:主題按鈕第 4 下、米黃底色', async () => {
+  const page = await open(fileUrl('sample-zh.md'));
+  const seen = [];
+  for (let i = 0; i < 4; i++) {
+    await page.click('.mdr-toolbar [data-action="theme"]');
+    await page.waitForTimeout(250);
+    seen.push(await page.evaluate(() => document.documentElement.dataset.mdrTheme));
+  }
+  await page.click('.mdr-toolbar [data-action="theme"]'); // 回到淺色看一眼順序正確後,再切到護眼截圖
+  await setSettings({ theme: 'sepia' });
+  await page.waitForTimeout(300);
+  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await page.screenshot({ path: join(OUTPUT, 'render-sepia.png') });
+  await page.close();
+  await resetSettings();
+  assert(seen.join('→') === 'light→dark→sepia→system' && bg === 'rgb(245, 239, 224)', `${seen.join('→')}、背景 ${bg}`);
+  return `${seen.join(' → ')};護眼背景 ${bg}`;
+});
+await check('10 打磨', '閱讀進度條:捲到底 100%、可關閉', async () => {
+  const page = await open(fileUrl('toc-long.md'));
+  const top = await page.$eval('.mdr-progress span', (s) => s.style.width);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(300);
+  const bottom = await page.$eval('.mdr-progress span', (s) => s.style.width);
+  await setSettings({ progressBar: false });
+  await page.waitForTimeout(300);
+  const hidden = await page.$eval('.mdr-progress', (el) => el.hidden);
+  await page.close();
+  await resetSettings();
+  assert(top === '0%' && bottom === '100%' && hidden, JSON.stringify({ top, bottom, hidden }));
+  return `${top} → ${bottom};關閉後隱藏`;
+});
+await check('10 打磨', '列印按鈕;列印時只印內文', async () => {
+  const page = await open(fileUrl('toc-long.md'));
+  const hasButton = await page.$('.mdr-toolbar [data-action="print"]') !== null;
+  await page.emulateMedia({ media: 'print' });
+  const r = await page.evaluate(() => ['.mdr-toolbar', '.mdr-toc', '.mdr-progress'].map((q) => getComputedStyle(document.querySelector(q)).display));
+  await page.close();
+  assert(hasButton && r.every((d) => d === 'none'), JSON.stringify({ hasButton, r }));
+  return '工具列、目錄、進度條在列印時都隱藏';
+});
+await check('10 打磨', '新版本提示:紅點 → 點了看更新日誌 → 紅點消失', async () => {
+  const fresh = await open(fileUrl('sample-zh.md'));
+  const before = await fresh.$eval('[data-action="settings"]', (b) => b.classList.contains('has-update'));
+  await fresh.close();
+  await sw.evaluate(() => chrome.storage.local.set({ seenVersion: '0.0.1' })); // 模擬剛從舊版更新上來
+  const popup = await open(POPUP_URL, 340);
+  const popupBadge = await popup.$eval('#open-changelog', (b) => b.classList.contains('has-update'));
+  await popup.close();
+  const page = await open(fileUrl('sample-zh.md'));
+  const dot = await page.$eval('[data-action="settings"]', (b) => b.classList.contains('has-update'));
+  const log = await expectNewPage(() => page.click('[data-action="settings"]'));
+  await log.waitForSelector('#changelog h2');
+  const url = log.url();
+  await log.close();
+  await page.close();
+  const after = await open(fileUrl('sample-zh.md'));
+  const gone = !(await after.$eval('[data-action="settings"]', (b) => b.classList.contains('has-update')));
+  await after.close();
+  assert(!before && popupBadge && dot && url.endsWith('#changelog') && gone, JSON.stringify({ before, popupBadge, dot, url, gone }));
+  return '剛安裝不提示;更新後小視窗與 ⚙️ 都提示;看過就消失';
+});
+await check('10 打磨', 'Windows 後援:Chrome 把本機 .md 當下載 → 閱讀頁直接開原檔', async () => {
+  await clearNotifications();
+  const src = fileUrl('sample-zh.md');
+  const page = await expectNewPage(() => sw.evaluate((u) => handleDownloadComplete({ id: 0, url: u, filename: 'C:\\Users\\me\\Downloads\\sample-zh.md' }), src));
+  const r = await pageState(page);
+  const url = new URL(page.url());
+  await page.close();
+  const n = (await notifications()).length;
+  assert(r.mdr === 'rendered' && r.zhOk && url.searchParams.get('src') === src && n === 0, JSON.stringify({ mdr: r.mdr, src: url.searchParams.get('src'), n }));
+  return '開原檔、不跳下載通知';
+});
+
 // ========== 2 下載(三種模式)==========
 await check('2 下載', '預設「跳通知」:下載 .md 後出現通知', async () => {
   await resetSettings();

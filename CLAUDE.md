@@ -21,6 +21,8 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **大型元件延遲載入**:Mermaid 只在文件有流程圖時載入 —— 一般網頁請背景管家 `chrome.scripting` 注入(`LAZY_SCRIPTS` 白名單),插件頁面直接加 `<script>`。
 - **content script 注入的 CSS 不能用相對路徑載字型/圖片**(會對到網頁):`npm run sync` 把 KaTeX 字型網址改寫成 `chrome-extension://__MSG_@@extension_id__/…`,字型列在 `web_accessible_resources`。
 - **Google Drive**:Google 已能自己排版一般 .md,Drive 按鈕定位是「看 Obsidian 語法」;原文用 `uc?export=download&id=` 由閱讀頁帶 Cookie 讀(`content/drive.js`、`MDR.driveUrl`)。
+- **主題**:system / light / dark / sepia;系統深色色票只套在 `data-mdr-theme="system"`,新主題要照這個規則加。
+- **新版本提示**:`chrome.storage.local.seenVersion`;安裝時記成目前版本,打開更新日誌時更新。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 

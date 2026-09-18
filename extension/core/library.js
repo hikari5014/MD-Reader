@@ -33,6 +33,11 @@
   }
   const clearHistory = () => chrome.storage.local.remove(['recent', 'docs']);
 
+  // 新版本提示:記住看過哪一版的更新日誌(第一次安裝時直接記成目前版本,不提示)
+  const VERSION = chrome.runtime.getManifest().version;
+  const hasUnseenUpdate = async () => (await chrome.storage.local.get('seenVersion')).seenVersion !== VERSION;
+  const markUpdateSeen = () => chrome.storage.local.set({ seenVersion: VERSION });
+
   const viewerUrl = ({ src, doc }) => (src ? `${VIEWER}?src=${encodeURIComponent(src)}` : `${VIEWER}?doc=${encodeURIComponent(doc)}`);
 
   // 重新打開最近的文件:.md 網址直接開(就地排版,網址好收藏);其他走閱讀頁
@@ -44,5 +49,5 @@
     return /^(https?|file):\/\/\S+$/i.test(t) ? { src: MDR.toRawUrl(t) } : { text: t };
   }
 
-  globalThis.MDR = Object.assign(globalThis.MDR || {}, { addRecent, listRecent, saveDoc, loadDoc, clearHistory, viewerUrl, reopenUrl, parsePasted, driveUrl, isDriveUrl });
+  globalThis.MDR = Object.assign(globalThis.MDR || {}, { addRecent, listRecent, saveDoc, loadDoc, clearHistory, viewerUrl, reopenUrl, parsePasted, driveUrl, isDriveUrl, hasUnseenUpdate, markUpdateSeen });
 })();

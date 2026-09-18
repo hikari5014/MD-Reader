@@ -13,8 +13,10 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({ id: MENU_OPEN_LINK, title: '用 MD隨手讀 開啟', contexts: ['link'], targetUrlPatterns: MD_LINK_PATTERNS });
   });
+  if (reason !== 'install') return;
+  MDR.markUpdateSeen(); // 第一次安裝不需要「有新版本」提示
   // 第一次安裝時,若還沒開「允許存取檔案網址」就打開引導頁
-  if (reason === 'install' && !(await chrome.extension.isAllowedFileSchemeAccess())) chrome.tabs.create({ url: ONBOARDING_URL });
+  if (!(await chrome.extension.isAllowedFileSchemeAccess())) chrome.tabs.create({ url: ONBOARDING_URL });
 });
 
 chrome.contextMenus.onClicked.addListener(openFromContextMenu);
@@ -26,11 +28,21 @@ function openFromContextMenu(info, tab) {
   return chrome.tabs.create(tab ? { url, index: tab.index + 1, openerTabId: tab.id } : { url });
 }
 
-// 下載完成的 .md → 依設定:跳通知 / 自動開 / 不處理
 chrome.downloads.onChanged.addListener(async (delta) => {
   if (delta.state?.current !== 'complete') return;
   const [item] = await chrome.downloads.search({ id: delta.id });
-  if (!item || !MDR.isMarkdownPath(item.filename)) return;
+  if (item) handleDownloadComplete(item);
+});
+
+// 下載完成的 .md → 依設定:跳通知 / 自動開 / 不處理
+async function handleDownloadComplete(item) {
+  if (!MDR.isMarkdownPath(item.filename)) return;
+  // Windows 後援:電腦把 .md 登記成「非文字檔」時,Chrome 打開本機 .md 會變成下載一份複本
+  // → 這不是真的下載,而是使用者想看這個檔案:直接用閱讀頁打開原檔
+  if (item.url?.startsWith('file:')) {
+    if (!(await chrome.extension.isAllowedFileSchemeAccess())) return chrome.tabs.create({ url: ONBOARDING_URL });
+    return chrome.tabs.create({ url: MDR.viewerUrl({ src: item.url }) });
+  }
   const { downloadMode } = await MDR.loadSettings();
   if (downloadMode === 'auto') return openLocalFile(item.filename);
   if (downloadMode !== 'notify') return;
@@ -40,7 +52,7 @@ chrome.downloads.onChanged.addListener(async (delta) => {
     title: 'MD隨手讀:下載了一份 Markdown',
     message: `${item.filename.split(/[\\/]/).pop()}\n點這裡用閱讀器打開`,
   });
-});
+}
 
 chrome.notifications.onClicked.addListener(openDownloadFromNotification);
 
@@ -68,7 +80,10 @@ const LAZY_SCRIPTS = ['vendor/mermaid.min.js'];
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // 閱讀畫面右上角的 ⚙️(content script 不能直接開設定頁,請背景管家代勞)
-  if (msg?.type === 'open-options') chrome.runtime.openOptionsPage();
+  if (msg?.type === 'open-options') {
+    if (msg.tab) chrome.tabs.create({ url: chrome.runtime.getURL(`pages/options.html#${msg.tab}`) });
+    else chrome.runtime.openOptionsPage();
+  }
   if (msg?.type === 'load-script' && LAZY_SCRIPTS.includes(msg.file) && sender.tab) {
     chrome.scripting.executeScript({ target: { tabId: sender.tab.id, frameIds: [sender.frameId] }, files: [msg.file] })
       .then(() => sendResponse(true), (e) => sendResponse(e.message));

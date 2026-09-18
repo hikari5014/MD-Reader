@@ -13,7 +13,10 @@ function showTab() {
   const tab = location.hash.slice(1) || 'appearance';
   document.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== tab; });
   document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('is-active', a.dataset.tab === tab));
-  if (tab === 'changelog') loadChangelog();
+  if (tab === 'changelog') {
+    loadChangelog();
+    MDR.markUpdateSeen();
+  }
   if (tab === 'permission') refreshFileAccess();
 }
 addEventListener('hashchange', showTab);

@@ -2,7 +2,7 @@
 
 Chrome 插件:.md 檔不管來自**電腦本機、網路網址、下載、Google Drive**,打開就是排版好的 Obsidian 風閱讀畫面。只讀、自用、不上架。
 
-目前版本:**v0.5.0**(Google Drive)。手動驗收步驟見 `docs/verification/v0.5.0-checklist.md`。
+目前版本:**v0.6.0**(護眼主題、進度條、列印、新版本提示)。手動驗收步驟見 `docs/verification/v0.6.0-checklist.md`。
 
 ## 安裝(載入未封裝)
 
@@ -39,7 +39,7 @@ docs/             計劃書、變更紀錄、驗收清單、進度
 npm install          # 安裝開發工具(只有開發需要,插件本身不用)
 npm run sync         # 第三方元件 → extension/vendor/;CHANGELOG → extension/(改了更新日誌一定要跑)
 npm run icons        # 重新產生圖示
-npm test             # 自動化測試(Chrome for Testing 載入插件跑 66 項,其中 2 項需連網)
+npm test             # 自動化測試(Chrome for Testing 載入插件跑 71 項,其中 2 項需連網)
 npm run test:vault   # 真實筆記驗收(從 Obsidian 知識庫挑 20 篇,MDR_VAULT 可指定路徑)
 npm run release      # 發布:打包 dist/md-suishoudu-v{版本}.zip + 建 git 版本標記(先 commit)
 ```

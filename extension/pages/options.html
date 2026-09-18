@@ -28,11 +28,12 @@
     <section data-panel="appearance">
       <h1>外觀</h1>
       <div class="opt-row">
-        <div><div class="opt-title">主題</div><div class="opt-desc">「跟隨系統」會隨電腦的深淺色模式自動切換。閱讀畫面右上角的半圓按鈕也能切換。</div></div>
+        <div><div class="opt-title">主題</div><div class="opt-desc">「跟隨系統」會隨電腦的深淺色模式自動切換;「護眼」是米黃底色,適合長時間閱讀。閱讀畫面右上角的半圓按鈕也能切換。</div></div>
         <div class="opt-seg" data-key="theme">
           <button type="button" data-value="system">跟隨系統</button>
           <button type="button" data-value="light">淺色</button>
           <button type="button" data-value="dark">深色</button>
+          <button type="button" data-value="sepia">護眼</button>
         </div>
       </div>
       <div class="opt-row">
@@ -59,6 +60,10 @@
       <div class="opt-row">
         <div><div class="opt-title">顯示目錄</div><div class="opt-desc">螢幕夠寬時,左邊常駐文件目錄。窄螢幕一律收起,按右上角 ☰ 再打開。</div></div>
         <button type="button" class="opt-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
+      </div>
+      <div class="opt-row">
+        <div><div class="opt-title">閱讀進度條</div><div class="opt-desc">畫面最上面一條細線,顯示讀到哪裡。</div></div>
+        <button type="button" class="opt-switch" role="switch" data-key="progressBar" aria-label="閱讀進度條"></button>
       </div>
       <div class="opt-row">
         <div><div class="opt-title">顯示屬性表</div><div class="opt-desc">Obsidian 筆記開頭 <code>---</code> 包起來的屬性(標籤、日期、相關筆記…),顯示成表格。</div></div>
