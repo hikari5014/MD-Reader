@@ -56,6 +56,12 @@ document.getElementById('reset').addEventListener('click', () => {
   if (confirm('確定要把所有設定恢復成預設值嗎?')) MDR.resetSettings();
 });
 
+document.getElementById('clear-history').addEventListener('click', async (e) => {
+  await MDR.clearHistory();
+  e.target.textContent = '✓ 已清除';
+  setTimeout(() => { e.target.textContent = '清除'; }, 1500);
+});
+
 // ---------- 檔案權限 ----------
 async function refreshFileAccess() {
   const ok = await chrome.extension.isAllowedFileSchemeAccess();

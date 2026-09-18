@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-mdr="popup">
+<head>
+<meta charset="utf-8">
+<title>MD隨手讀</title>
+<link rel="stylesheet" href="../styles/reader.css">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="pp">
+  <header class="pp-head">
+    <img src="../icons/icon32.png" width="22" height="22" alt="">
+    <span class="pp-name">MD隨手讀</span>
+    <span class="pp-ver" id="version"></span>
+  </header>
+
+  <div class="pp-warn" id="warn" hidden>⚠️ 還沒開「檔案權限」,看不了電腦裡的 .md。<button type="button" class="pp-link" id="fix-access">去開啟</button></div>
+
+  <button type="button" class="pp-primary" id="open-file">📂 開啟電腦裡的 .md</button>
+  <p class="pp-hint">💡 也可以直接把 .md 檔拖進任何 Chrome 分頁</p>
+
+  <form id="paste-form" class="pp-paste">
+    <textarea id="paste" rows="3" placeholder="貼上 Markdown 文字或網址…" aria-label="貼上 Markdown 文字或網址"></textarea>
+    <button type="submit" class="pp-secondary" id="paste-go" disabled>排版給我看 →</button>
+  </form>
+
+  <section class="pp-recent">
+    <div class="pp-label">🕘 最近開過</div>
+    <ul id="recent"></ul>
+    <p class="pp-empty" id="recent-empty" hidden></p>
+  </section>
+
+  <footer class="pp-foot">
+    <button type="button" class="pp-link" id="open-settings">⚙️ 設定</button>
+    <button type="button" class="pp-link" id="open-changelog">📜 更新日誌</button>
+  </footer>
+</div>
+<script src="../core/detect.js"></script>
+<script src="../core/settings.js"></script>
+<script src="../core/library.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

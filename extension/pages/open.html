@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-mdr="open">
+<head>
+<meta charset="utf-8">
+<title>開啟 Markdown 檔 — MD隨手讀</title>
+<link rel="stylesheet" href="../styles/reader.css">
+<style>
+  .op { max-width: 520px; margin: 14vh auto 0; padding: 0 24px; font-size: 16px; text-align: center; }
+  .op-icon { font-size: 52px; }
+  .op h1 { margin: 8px 0 24px; font-size: 22px; }
+  .op-btn { display: inline-block; padding: 12px 28px; border-radius: 10px; background: var(--mdr-accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .op-btn:hover { filter: brightness(1.08); }
+  .op-hint { margin-top: 28px; padding: 12px 16px; border-radius: 10px; background: var(--mdr-bg-2); color: var(--mdr-muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+<main class="op">
+  <div class="op-icon">📂</div>
+  <h1>開啟電腦裡的 Markdown 檔</h1>
+  <label class="op-btn">選擇檔案<input type="file" id="file" accept=".md,.markdown,.mdown,.mkd,.mkdn,.txt,text/markdown,text/plain" hidden></label>
+  <p class="op-hint">💡 更好的方法:直接把 .md 檔<b>拖進這個分頁</b>(或任何分頁)。<br>用拖的,文件裡的圖片也能正常顯示。</p>
+</main>
+<script src="../core/detect.js"></script>
+<script src="../core/settings.js"></script>
+<script src="../core/library.js"></script>
+<script src="open.js"></script>
+</body>
+</html>

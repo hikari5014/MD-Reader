@@ -14,7 +14,9 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - **排版引擎只有一份**:`core/` 同時給就地排版(content script)、閱讀頁(viewer)、設定頁、背景管家(importScripts)用,掛在 `globalThis.MDR`。閱讀畫面外殼(目錄、工具列)在 `core/reader.js`。
 - **一律消毒**:任何 Markdown 轉出的 HTML 都要過 `MDR.renderMarkdown`(內含 DOMPurify),不可繞過。
 - **樣式全部掛在 `html[data-mdr]` 底下**:`reader.css` 會被注入所有 .md 網址(包括 GitHub 這種本來就是網頁的),不能影響沒被排版的頁面。
-- **背景管家是 classic script**(不是 module):頂層函式是全域的,自動化測試直接呼叫 `openDownloadFromNotification()`。
+- **背景管家是 classic script**(不是 module):頂層函式是全域的,自動化測試直接呼叫 `openDownloadFromNotification()`、`openFromContextMenu()`。
+- **小視窗(popup)不能放需要離開焦點的操作**:拖放、選檔視窗都會讓小視窗關閉 → 改開分頁(`pages/open.html`)。
+- 儲存分工:使用者設定 → `chrome.storage.sync`(跨電腦);最近開過、貼上文字 → `chrome.storage.local`(只在本機,`core/library.js`)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 
 ## 測試

@@ -1,17 +1,30 @@
-// 背景管家:安裝引導、打開設定頁、下載處理、Drive 診斷(第 0 期實驗用)
-importScripts('core/detect.js', 'core/settings.js');
+// 背景管家:安裝引導、右鍵選單、下載處理、打開設定頁、Drive 診斷(第 0 期實驗用)
+importScripts('core/detect.js', 'core/settings.js', 'core/library.js');
 
 const NOTIFY_PREFIX = 'mdr-dl-';
 const ONBOARDING_URL = chrome.runtime.getURL('pages/onboarding.html');
 
-// 第一次安裝時,若還沒開「允許存取檔案網址」就打開引導頁
+const MENU_OPEN_LINK = 'mdr-open-link';
+const MD_LINK_PATTERNS = ['md', 'MD', 'markdown', 'mdown', 'mkd', 'mkdn']
+  .flatMap((ext) => [`*://*/*.${ext}`, `*://*/*.${ext}?*`, `*://*/*.${ext}#*`, `file:///*.${ext}`]);
+
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-  if (reason !== 'install') return;
-  if (!(await chrome.extension.isAllowedFileSchemeAccess())) chrome.tabs.create({ url: ONBOARDING_URL });
+  // 右鍵選單:只在 .md 連結上出現
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({ id: MENU_OPEN_LINK, title: '用 MD隨手讀 開啟', contexts: ['link'], targetUrlPatterns: MD_LINK_PATTERNS });
+  });
+  // 第一次安裝時,若還沒開「允許存取檔案網址」就打開引導頁
+  if (reason === 'install' && !(await chrome.extension.isAllowedFileSchemeAccess())) chrome.tabs.create({ url: ONBOARDING_URL });
 });
 
-// 點工具列上的插件圖示 → 設定頁(v0.3 會改成小視窗,小視窗裡也有設定入口)
-chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
+chrome.contextMenus.onClicked.addListener(openFromContextMenu);
+
+// 一律用閱讀頁開:不管伺服器怎麼回應(網頁、強制下載、沒副檔名)都能排版
+function openFromContextMenu(info, tab) {
+  if (info.menuItemId !== MENU_OPEN_LINK) return;
+  const url = MDR.viewerUrl({ src: MDR.toRawUrl(info.linkUrl) });
+  return chrome.tabs.create(tab ? { url, index: tab.index + 1, openerTabId: tab.id } : { url });
+}
 
 // 下載完成的 .md → 依設定:跳通知 / 自動開 / 不處理
 chrome.downloads.onChanged.addListener(async (delta) => {

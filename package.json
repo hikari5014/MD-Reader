@@ -1,7 +1,7 @@
 {
   "name": "md-suishoudu",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MD隨手讀 Chrome 插件 — 開發與測試工具(插件本體在 extension/,不需建置)",
   "scripts": {
     "sync": "node scripts/sync.mjs",

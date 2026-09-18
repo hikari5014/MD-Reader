@@ -7,6 +7,7 @@
     width: 'medium', // narrow | medium | wide | full
     toc: true, // 寬螢幕時預設顯示目錄
     downloadMode: 'notify', // notify(跳通知,點了才開)| auto(自動開)| off(不處理)
+    recordRecent: true, // 記錄最近開過的檔案(顯示在小視窗)
   });
   const WIDTHS = { narrow: '680px', medium: '760px', wide: '960px', full: 'none' };
 

@@ -59,6 +59,14 @@
         <div><div class="opt-title">顯示目錄</div><div class="opt-desc">螢幕夠寬時,左邊常駐文件目錄。窄螢幕一律收起,按右上角 ☰ 再打開。</div></div>
         <button type="button" class="opt-switch" role="switch" data-key="toc" aria-label="顯示目錄"></button>
       </div>
+      <div class="opt-row">
+        <div><div class="opt-title">記錄最近開過的檔案</div><div class="opt-desc">列在插件小視窗裡,方便再次打開。紀錄只存在這台電腦,不會上傳。</div></div>
+        <button type="button" class="opt-switch" role="switch" data-key="recordRecent" aria-label="記錄最近開過的檔案"></button>
+      </div>
+      <div class="opt-row">
+        <div><div class="opt-title">清除最近紀錄</div><div class="opt-desc">刪掉「最近開過」清單,以及小視窗貼上過、選檔開過的文字。</div></div>
+        <button type="button" class="opt-plain" id="clear-history">清除</button>
+      </div>
     </section>
 
     <section data-panel="download" hidden>
@@ -96,7 +104,9 @@
 <script src="../vendor/markdown-it.min.js"></script>
 <script src="../vendor/purify.min.js"></script>
 <script src="../vendor/highlight.min.js"></script>
+<script src="../core/detect.js"></script>
 <script src="../core/settings.js"></script>
+<script src="../core/library.js"></script>
 <script src="../core/render.js"></script>
 <script src="options.js"></script>
 </body>

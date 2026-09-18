@@ -351,6 +351,149 @@ await check('6 設定頁', '檔案權限狀態', async () => {
   return t;
 });
 
+// ========== 7 右鍵・小視窗・最近開過(v0.3)==========
+const POPUP_URL = `chrome-extension://${EXT_ID}/pages/popup.html`;
+const listRecent = () => sw.evaluate(() => MDR.listRecent());
+// 做一個動作,等它開出新分頁,回傳載入完成的新分頁
+async function expectNewPage(action) {
+  const opened = context.waitForEvent('page', { timeout: 10000 });
+  await action();
+  const page = await opened;
+  await page.waitForLoadState('load');
+  await page.waitForTimeout(400);
+  return page;
+}
+const pageState = (page) => page.evaluate(() => ({
+  mdr: document.documentElement.dataset.mdr || null,
+  zhOk: document.body.innerText.includes('MDR-ZH-OK-繁中正常'),
+  text: document.body.innerText.slice(0, 200),
+}));
+
+await check('7 右鍵・小視窗', '右鍵選單有建立成功(比對規則沒寫錯)', async () => {
+  // 選單不存在時 update 會失敗;targetUrlPatterns 寫錯時 create 就會失敗,選單也不會存在
+  const err = await sw.evaluate(() => chrome.contextMenus.update('mdr-open-link', {}).then(() => null, (e) => e.message));
+  assert(!err, err);
+  return '「用 MD隨手讀 開啟」已註冊';
+});
+await check('7 右鍵・小視窗', '右鍵 .md 連結 → 閱讀頁開啟', async () => {
+  const page = await expectNewPage(() => sw.evaluate((u) => openFromContextMenu({ menuItemId: 'mdr-open-link', linkUrl: u }), `${BASE}/plain/test.md`));
+  const r = await pageState(page);
+  const url = page.url();
+  await page.close();
+  assert(r.mdr === 'rendered' && r.zhOk && url.includes('viewer.html?src='), `${url} mdr=${r.mdr}`);
+  return 'viewer.html?src=…';
+});
+await check('7 右鍵・小視窗', '右鍵強制下載的 .md 也能開', async () => {
+  const page = await expectNewPage(() => sw.evaluate((u) => openFromContextMenu({ menuItemId: 'mdr-open-link', linkUrl: u }), `${BASE}/attach/test.md`));
+  const r = await pageState(page);
+  await page.close();
+  assert(r.mdr === 'rendered' && r.zhOk, `mdr=${r.mdr}`);
+  return '排版成功';
+});
+await check('7 右鍵・小視窗', 'GitHub / GitLab 檔案頁 → 原始檔網址', async () => {
+  const r = await sw.evaluate(() => [
+    MDR.toRawUrl('https://github.com/simov/markdown-viewer/blob/main/README.md'),
+    MDR.toRawUrl('https://gitlab.com/group/sub/proj/-/blob/main/docs/a.md'),
+    MDR.toRawUrl('https://example.com/a.md'),
+  ]);
+  assert(r[0] === 'https://raw.githubusercontent.com/simov/markdown-viewer/main/README.md'
+    && r[1] === 'https://gitlab.com/group/sub/proj/-/raw/main/docs/a.md'
+    && r[2] === 'https://example.com/a.md', r.join(' | '));
+  return 'GitHub、GitLab 轉換正確,其他網址不動';
+});
+await check('7 右鍵・小視窗', '小視窗:貼上文字 → 排版', async () => {
+  const popup = await open(POPUP_URL, 340);
+  await popup.fill('#paste', '# 貼上測試\n\n- [x] 小視窗貼上的文字 MDR-PASTE-OK');
+  const page = await expectNewPage(() => popup.click('#paste-go'));
+  const r = await pageState(page);
+  const boxes = await page.locator('.mdr-body input[type=checkbox]').count();
+  await page.close();
+  await popup.close().catch(() => {});
+  assert(r.mdr === 'rendered' && r.text.includes('MDR-PASTE-OK') && boxes === 1, JSON.stringify(r));
+  return '排版成功(含勾選框)';
+});
+await check('7 右鍵・小視窗', '小視窗:貼上網址 → 開那個網址', async () => {
+  const popup = await open(POPUP_URL, 340);
+  await popup.fill('#paste', `  ${BASE}/nocharset/test.md  `);
+  const page = await expectNewPage(() => popup.click('#paste-go'));
+  const r = await pageState(page);
+  await page.close();
+  await popup.close().catch(() => {});
+  assert(r.mdr === 'rendered' && r.zhOk, `mdr=${r.mdr}`);
+  return '網址排版成功';
+});
+await check('7 右鍵・小視窗', '開啟檔案頁:選檔 → 排版', async () => {
+  const page = await open(`chrome-extension://${EXT_ID}/pages/open.html`);
+  await page.screenshot({ path: join(OUTPUT, 'open-page.png') });
+  await page.setInputFiles('#file', join(ROOT, 'test-files', 'sample-zh.md'));
+  await page.waitForURL(/viewer\.html\?doc=/);
+  await page.waitForTimeout(400);
+  const r = await pageState(page);
+  await page.close();
+  assert(r.mdr === 'rendered' && r.zhOk, `mdr=${r.mdr}`);
+  return '選檔後換成閱讀頁';
+});
+await check('7 右鍵・小視窗', '閱讀頁:暫存文件被清掉時顯示說明', async () => {
+  const page = await open(`chrome-extension://${EXT_ID}/pages/viewer.html?doc=not-exist`);
+  const r = await pageState(page);
+  await page.close();
+  assert(r.mdr === 'error' && r.text.includes('清掉'), r.text);
+  return r.text.slice(0, 30) + '…';
+});
+await check('7 右鍵・小視窗', '最近開過:依時間排列,點了重新打開', async () => {
+  await sw.evaluate(() => MDR.clearHistory());
+  for (const f of ['sample-zh.md', 'tasks-lists.md']) await (await open(fileUrl(f))).close();
+  const popup = await open(POPUP_URL, 340);
+  await popup.screenshot({ path: join(OUTPUT, 'popup.png') });
+  const items = await popup.$$eval('#recent li', (lis) => lis.map((li) => li.innerText.replace(/\s+/g, ' ')));
+  assert(items.length === 2 && items[0].includes('清單與待辦測試') && items[0].includes('本機') && items[1].includes('繁體中文測試文件'), JSON.stringify(items));
+  const page = await expectNewPage(() => popup.click('#recent li:nth-child(2) button'));
+  const r = await pageState(page);
+  const url = decodeURIComponent(page.url());
+  await page.close();
+  await popup.close().catch(() => {});
+  assert(r.mdr === 'rendered' && r.zhOk && url.startsWith('file://'), url);
+  return `${items.length} 筆,點第 2 筆 → ${url.split('/').pop()}`;
+});
+await check('7 右鍵・小視窗', '關閉「記錄最近開過」→ 不再記錄', async () => {
+  await setSettings({ recordRecent: false });
+  const before = (await listRecent()).length;
+  await (await open(fileUrl('code-langs.md'))).close();
+  const after = (await listRecent()).length;
+  const popup = await open(POPUP_URL, 340);
+  const empty = await popup.textContent('#recent-empty');
+  await popup.close();
+  await resetSettings();
+  assert(before === after && empty.includes('已關閉'), `${before} → ${after},小視窗顯示「${empty}」`);
+  return '沒有新增紀錄,小視窗顯示已關閉';
+});
+await check('7 右鍵・小視窗', '設定頁「清除最近紀錄」', async () => {
+  assert((await listRecent()).length > 0, '測試前應該要有紀錄');
+  const page = await open(`${OPTIONS_URL}#reading`, 1200);
+  await page.click('#clear-history');
+  await sleep(300);
+  const r = await sw.evaluate(() => chrome.storage.local.get(null));
+  await page.close();
+  assert(!r.recent && !r.docs, JSON.stringify(Object.keys(r)));
+  return '清單與貼上文字都清掉了';
+});
+await check('7 右鍵・小視窗', '小視窗:⚙️ 設定、📜 更新日誌、權限提醒', async () => {
+  let popup = await open(POPUP_URL, 340);
+  const warnHidden = await popup.$eval('#warn', (el) => el.hidden);
+  const settingsPage = await expectNewPage(() => popup.click('#open-settings'));
+  const u1 = settingsPage.url();
+  await settingsPage.close();
+  await popup.close().catch(() => {});
+  popup = await open(POPUP_URL, 340);
+  const logPage = await expectNewPage(() => popup.click('#open-changelog'));
+  await logPage.waitForSelector('#changelog h2');
+  const u2 = logPage.url();
+  await logPage.close();
+  await popup.close().catch(() => {});
+  assert(u1.startsWith(OPTIONS_URL) && u2.endsWith('#changelog') && warnHidden === fileAccess, `${u1} / ${u2} / warnHidden=${warnHidden}`);
+  return '兩個入口都正確;已有權限時不顯示提醒';
+});
+
 // ========== 2 下載(三種模式)==========
 await check('2 下載', '預設「跳通知」:下載 .md 後出現通知', async () => {
   await resetSettings();

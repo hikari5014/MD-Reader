@@ -22,5 +22,12 @@
     return TEXT_TYPES.includes(doc.contentType);
   }
 
-  globalThis.MDR = Object.assign(globalThis.MDR || {}, { isMarkdownPath, isMarkdownUrl, isPlainTextDocument });
+  // GitHub / GitLab 的「檔案頁」是網頁,換成原始檔網址才拿得到 Markdown 文字
+  function toRawUrl(url) {
+    const gh = url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/);
+    if (gh) return `https://raw.githubusercontent.com/${gh[1]}/${gh[2]}/${gh[3]}`;
+    return url.replace(/^(https:\/\/gitlab\.com\/.+?)\/-\/blob\//, '$1/-/raw/');
+  }
+
+  globalThis.MDR = Object.assign(globalThis.MDR || {}, { isMarkdownPath, isMarkdownUrl, isPlainTextDocument, toRawUrl });
 })();

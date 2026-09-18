@@ -76,6 +76,8 @@ html[data-mdr-theme="dark"] .opt-status.is-ok { background: #14301f; color: #7ee
   html[data-mdr-theme="system"] .opt-status.is-ok { background: #14301f; color: #7ee2a8; }
 }
 .opt-steps { padding-left: 1.4em; line-height: 1.9; }
+.opt-plain { flex-shrink: 0; padding: 6px 14px; border: 1px solid var(--mdr-line); border-radius: 7px; background: var(--mdr-bg); color: var(--mdr-fg); font: inherit; cursor: pointer; }
+.opt-plain:hover { border-color: #e5484d; color: #e5484d; }
 .opt-primary { padding: 9px 18px; border: 0; border-radius: 8px; background: var(--mdr-accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 
 /* 更新日誌 */
