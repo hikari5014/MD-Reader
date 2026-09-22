@@ -5,25 +5,28 @@
   const params = new URLSearchParams(location.search);
   const src = params.get('src');
   const docId = params.get('doc');
+  // 先套主題,載入過場的顏色才會對;讀檔超過 0.3 秒才浮出過場(本機檔通常一閃就好,不顯示)
+  MDR.applySettings(document, await MDR.loadSettings());
   try {
-    if (src) {
-      const { text, fileName } = await loadText(src);
-      const base = document.createElement('base');
-      base.href = src; // 讓文件裡的相對圖片、連結指回原本的位置
-      document.head.append(base);
-      const fallback = params.get('name') || fileName || decodeURIComponent(src.split(/[/?#]/).filter(Boolean).pop() || 'Markdown');
-      await MDR.mount(document, text, fallback);
-      MDR.addRecent({ title: document.title, src });
-    } else if (docId) {
-      const doc = await MDR.loadDoc(docId);
-      if (!doc) throw new Error('這份文件已經從暫存中清掉了(只保留最近 10 份),請重新貼上或選檔');
-      await MDR.mount(document, doc.text, doc.name);
-      MDR.addRecent({ title: document.title, doc: docId });
-    } else {
-      throw new Error('沒有指定要開啟的檔案');
-    }
+    await MDR.withLoader(async () => {
+      if (src) {
+        const { text, fileName } = await loadText(src);
+        const base = document.createElement('base');
+        base.href = src; // 讓文件裡的相對圖片、連結指回原本的位置
+        document.head.append(base);
+        const fallback = params.get('name') || fileName || decodeURIComponent(src.split(/[/?#]/).filter(Boolean).pop() || 'Markdown');
+        await MDR.mount(document, text, fallback);
+        MDR.addRecent({ title: document.title, src });
+      } else if (docId) {
+        const doc = await MDR.loadDoc(docId);
+        if (!doc) throw new Error('這份文件已經從暫存中清掉了(只保留最近 10 份),請重新貼上或選檔');
+        await MDR.mount(document, doc.text, doc.name);
+        MDR.addRecent({ title: document.title, doc: docId });
+      } else {
+        throw new Error('沒有指定要開啟的檔案');
+      }
+    }, () => MDR.pageLoader.show(MDR.isDriveUrl(src || '') ? '正在從 Google Drive 讀取…' : '正在開啟文件…'), () => MDR.pageLoader.hide());
   } catch (e) {
-    MDR.applySettings(document, await MDR.loadSettings());
     const box = document.createElement('div');
     box.className = 'mdr-error';
     const msg = document.createElement('p');

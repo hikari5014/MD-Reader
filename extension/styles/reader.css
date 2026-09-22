@@ -410,7 +410,12 @@ html[data-mdr] .mdr-math-block { margin: 1em 0; overflow-x: auto; overflow-y: hi
 html[data-mdr] .mdr-mermaid { margin: 1.2em 0; overflow-x: auto; text-align: center; }
 html[data-mdr] .mdr-mermaid svg { max-width: 100%; height: auto; }
 html[data-mdr] .mdr-mermaid.is-error { text-align: left; }
-html[data-mdr] .mdr-mermaid-error { margin-bottom: 0.5em; color: rgb(var(--mdr-c-red)); font-size: 0.9em; }
+html[data-mdr] .mdr-mermaid-error { display: flex; align-items: center; gap: 6px; margin-bottom: 0.5em; color: rgb(var(--mdr-c-red)); font-size: 0.9em; }
+html[data-mdr] .mdr-mermaid-error .mdr-icon { --mdr-icon-size: 18px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+/* 流程圖元件載入、繪製中:先佔好位置(畫面不跳),0.3 秒後才浮出轉圈 */
+html[data-mdr] .mdr-mermaid.is-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 120px; border-radius: 14px; background: var(--mdr-bg-2); color: var(--mdr-muted); font-size: 0.9em; }
+html[data-mdr] .mdr-mermaid.is-loading > * { animation: mdr-fade-in var(--mdr-med) var(--mdr-ease) 300ms both; }
+html[data-mdr] .mdr-mermaid.is-ready svg { animation: mdr-fade-through 210ms var(--mdr-ease) both; }
 
 /* 原始碼檢視 */
 html[data-mdr] .mdr-raw {

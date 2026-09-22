@@ -22,10 +22,11 @@
   }
 
   function showError(box, message) {
+    box.classList.remove('is-loading');
     box.classList.add('is-error');
     const note = document.createElement('div');
     note.className = 'mdr-mermaid-error';
-    note.textContent = `⚠️ ${message}`;
+    note.append(MDR.icon('warning'), message);
     const pre = document.createElement('pre');
     pre.textContent = box.dataset.source;
     box.replaceChildren(note, pre);
@@ -38,6 +39,11 @@
       const box = document.createElement('div');
       box.className = 'mdr-mermaid';
       box.dataset.source = code.textContent;
+      // 載入、繪製中:佔好位置,轉圈 0.3 秒後才浮出(CSS 延遲),很快畫好就不會閃
+      box.classList.add('is-loading');
+      const label = document.createElement('span');
+      label.textContent = '正在畫流程圖…';
+      box.append(MDR.spinner(22), label);
       code.parentElement.replaceWith(box);
     });
     const boxes = [...root.querySelectorAll('.mdr-mermaid')];
@@ -53,7 +59,8 @@
       const id = `mdr-mermaid-${++seq}`;
       try {
         const { svg } = await globalThis.mermaid.render(id, box.dataset.source);
-        box.classList.remove('is-error');
+        box.classList.remove('is-error', 'is-loading');
+        box.classList.add('is-ready');
         box.innerHTML = globalThis.DOMPurify.sanitize(svg, SVG_PURIFY);
       } catch (e) {
         showError(box, `流程圖語法有誤:${String(e.message || e).split('\n')[0]}`);

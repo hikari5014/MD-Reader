@@ -271,9 +271,97 @@ html[data-mdr] .mdr-seg button[aria-pressed="true"] .mdr-icon { font-variation-s
 @keyframes mdr-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 @keyframes mdr-spin-in { from { transform: rotate(-120deg) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/* ---------- 載入與過場 ----------
+   原則:等不到 0.3 秒不顯示、顯示了至少停 0.5 秒(MDR.withLoader);減少動態效果時改成明暗呼吸,不能停(停了像當機) */
+/* 圓形轉圈(Material 3:弧線一邊轉、一邊伸縮)—— MDR.spinner(大小) */
+html[data-mdr] .mdr-spinner {
+  width: var(--mdr-spinner-size, 24px);
+  height: var(--mdr-spinner-size, 24px);
+  flex-shrink: 0;
+  color: var(--mdr-accent);
+  animation: mdr-spin-rotate 1.4s linear infinite;
+}
+html[data-mdr] .mdr-spinner circle { fill: none; stroke: currentColor; stroke-width: 4.5; stroke-linecap: round; }
+html[data-mdr] .mdr-spinner .mdr-spinner-track { opacity: 0.16; }
+html[data-mdr] .mdr-spinner .mdr-spinner-arc { stroke-dasharray: 1, 200; transform-origin: center; animation: mdr-spin-dash 1.4s var(--mdr-ease) infinite; }
+@keyframes mdr-spin-rotate { to { transform: rotate(360deg); } }
+@keyframes mdr-spin-dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124; }
+}
+
+/* 不確定進度條:兩段色條接力滑過 */
+html[data-mdr] .mdr-linear { position: relative; height: 4px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--mdr-accent) 18%, transparent); }
+html[data-mdr] .mdr-linear::before,
+html[data-mdr] .mdr-linear::after { content: ""; position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--mdr-accent); }
+html[data-mdr] .mdr-linear::before { animation: mdr-linear-1 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite; }
+html[data-mdr] .mdr-linear::after { animation: mdr-linear-2 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) 1.15s infinite; }
+@keyframes mdr-linear-1 { 0% { left: -35%; right: 100%; } 60%, 100% { left: 100%; right: -90%; } }
+@keyframes mdr-linear-2 { 0% { left: -200%; right: 100%; } 60%, 100% { left: 107%; right: -8%; } }
+
+/* 整頁過場(閱讀頁開檔)—— MDR.pageLoader.show(文字) / hide()
+   插件圖示輕輕呼吸、兩道光圈向外擴散;結束時淡出並微微放大 */
+html[data-mdr] .mdr-page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--mdr-bg);
+  color: var(--mdr-muted);
+  font: 14px/1.6 system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--mdr-slow) var(--mdr-ease), transform var(--mdr-slow) var(--mdr-ease), visibility 0s linear var(--mdr-slow);
+}
+html[data-mdr] .mdr-page-loader.is-visible { opacity: 1; visibility: visible; transition: opacity var(--mdr-med) var(--mdr-ease), visibility 0s; }
+html[data-mdr] .mdr-page-loader.is-leaving { opacity: 0; transform: scale(1.02); }
+html[data-mdr] .mdr-page-loader-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: var(--mdr-accent);
+  color: #fff;
+  animation: mdr-breathe 1.8s var(--mdr-ease) infinite;
+}
+html[data-mdr] .mdr-page-loader-mark .mdr-icon { --mdr-icon-size: 36px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 40; }
+html[data-mdr] .mdr-page-loader-mark::before,
+html[data-mdr] .mdr-page-loader-mark::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--mdr-accent); border-radius: inherit; animation: mdr-ring 1.8s var(--mdr-ease) infinite; }
+html[data-mdr] .mdr-page-loader-mark::after { animation-delay: 0.9s; }
+html[data-mdr] .mdr-page-loader .mdr-linear { width: 160px; }
+html[data-mdr] .mdr-page-loader-text { animation: mdr-fade-in var(--mdr-slow) var(--mdr-ease) 200ms both; }
+@keyframes mdr-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.94); } }
+@keyframes mdr-ring { from { opacity: 0.6; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+@keyframes mdr-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* 內容切換(fade through)—— MDR.swap(容器, 換內容):舊內容 90ms 淡出 → 新內容 210ms 淡入並從 0.96 放大到 1 */
+html[data-mdr] .mdr-fade-out { opacity: 0; transition: opacity 90ms cubic-bezier(0.4, 0, 1, 1); }
+html[data-mdr] .mdr-fade-in { animation: mdr-fade-through 210ms var(--mdr-ease) both; }
+@keyframes mdr-fade-through { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
 /* 使用者在系統設定了「減少動態效果」:動畫全部變成瞬間完成 */
 @media (prefers-reduced-motion: reduce) {
   html[data-mdr] *,
   html[data-mdr] *::before,
   html[data-mdr] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
 }
+/* 例外:載入動畫不能停(會像當機),改成柔和的明暗呼吸 */
+@media (prefers-reduced-motion: reduce) {
+  html[data-mdr] .mdr-spinner,
+  html[data-mdr] .mdr-page-loader-mark,
+  html[data-mdr] .mdr-linear::before { animation: mdr-breathe-opacity 1.6s ease-in-out infinite !important; }
+  html[data-mdr] .mdr-spinner .mdr-spinner-arc { animation: none !important; stroke-dasharray: 60, 200 !important; }
+  html[data-mdr] .mdr-linear::before { left: 0 !important; right: 0 !important; }
+  html[data-mdr] .mdr-linear::after,
+  html[data-mdr] .mdr-page-loader-mark::before,
+  html[data-mdr] .mdr-page-loader-mark::after { animation: none !important; opacity: 0 !important; }
+}
+@keyframes mdr-breathe-opacity { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }

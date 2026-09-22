@@ -29,6 +29,7 @@ const ROUTES = {
   '/html/README.md': { type: 'text/html; charset=utf-8', body: Buffer.from('<!doctype html><title>GitHub-like</title><h1 id="gh">本來就是網頁</h1>') },
   '/download': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E4%B8%8B%E8%BC%89%E6%B8%AC%E8%A9%A6.md" } },
   '/xss.md': { type: 'text/plain; charset=utf-8', body: XSS },
+  '/slow/test.md': { type: 'text/plain; charset=utf-8', delay: 1500 }, // 模擬讀很久的網址(載入過場)
   // 模擬 drive.usercontent.google.com 的回應格式(附件 + UTF-8 檔名)
   '/drive-like/download': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E9%80%B1%E6%9C%83%E7%B4%80%E9%8C%84.md" }, body: Buffer.from('# 週會紀錄\n\n> [!tip] 從 Drive 開的\n> 看得懂 Obsidian 提示框 MDR-DRIVE-OK\n') },
   '/drive-like/noh1': { type: 'application/octet-stream', extra: { 'content-disposition': "attachment; filename*=UTF-8''%E7%84%A1%E6%A8%99%E9%A1%8C%E7%AD%86%E8%A8%98.md" }, body: Buffer.from('沒有標題的內容') },
@@ -36,7 +37,7 @@ const ROUTES = {
 const server = http.createServer((req, res) => {
   const route = ROUTES[new URL(req.url, 'http://x').pathname];
   if (!route) return res.writeHead(404).end();
-  res.writeHead(200, { 'content-type': route.type, ...route.extra }).end(route.body || SAMPLE);
+  setTimeout(() => res.writeHead(200, { 'content-type': route.type, ...route.extra }).end(route.body || SAMPLE), route.delay || 0);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
@@ -211,8 +212,10 @@ await check('5 閱讀畫面', '相對路徑圖片', async () => {
 await check('5 閱讀畫面', '原始碼切換', async () => {
   const page = await open(fileUrl('sample-zh.md'));
   await page.click('.mdr-toolbar [data-action="raw"]');
+  await sleep(150); // 淡出淡入切換:90ms 後才換內容
   const on = await page.evaluate(() => ({ raw: !document.querySelector('.mdr-raw').hidden, article: !document.querySelector('.mdr-body').hidden, text: document.querySelector('.mdr-raw').textContent.startsWith('# 繁體中文測試文件') }));
   await page.click('.mdr-toolbar [data-action="raw"]');
+  await sleep(150);
   const off = await page.evaluate(() => !document.querySelector('.mdr-raw').hidden);
   await page.close();
   assert(on.raw && !on.article && on.text && !off, JSON.stringify({ on, off }));
@@ -652,10 +655,10 @@ await check('8 Obsidian', '數學公式(含字型)、價錢不誤判、錯誤公
 });
 await check('8 Obsidian', 'Mermaid:流程圖、循序圖、語法錯誤的說明', async () => {
   const page = await open(fileUrl('mermaid.md'));
-  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
+  await page.waitForSelector('.mdr-mermaid.is-ready > svg', { timeout: 15000 });
   await page.waitForTimeout(500);
   const r = await page.evaluate(() => ({
-    svgs: document.querySelectorAll('.mdr-mermaid svg').length,
+    svgs: document.querySelectorAll('.mdr-mermaid.is-ready > svg').length,
     errors: document.querySelectorAll('.mdr-mermaid.is-error').length,
     label: document.querySelector('.mdr-mermaid')?.textContent.includes('排版顯示'),
     stray: document.querySelectorAll('body > [id^="dmdr-mermaid"]').length,
@@ -667,11 +670,11 @@ await check('8 Obsidian', 'Mermaid:流程圖、循序圖、語法錯誤的說明
 });
 await check('8 Obsidian', 'Mermaid:切深色主題會重畫', async () => {
   const page = await open(fileUrl('mermaid.md'));
-  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
-  const before = await page.$eval('.mdr-mermaid svg', (s) => s.outerHTML.length + s.querySelector('style')?.textContent.slice(0, 400));
+  await page.waitForSelector('.mdr-mermaid.is-ready > svg', { timeout: 15000 });
+  const before = await page.$eval('.mdr-mermaid.is-ready > svg', (s) => s.outerHTML.length + s.querySelector('style')?.textContent.slice(0, 400));
   await setSettings({ theme: 'dark' });
   await page.waitForFunction((b) => {
-    const s = document.querySelector('.mdr-mermaid svg');
+    const s = document.querySelector('.mdr-mermaid.is-ready > svg');
     return s && s.outerHTML.length + s.querySelector('style')?.textContent.slice(0, 400) !== b;
   }, before, { timeout: 10000 });
   await page.screenshot({ path: join(OUTPUT, 'mermaid-dark.png') });
@@ -682,8 +685,8 @@ await check('8 Obsidian', 'Mermaid:切深色主題會重畫', async () => {
 await check('8 Obsidian', '閱讀頁也能畫流程圖;沒有流程圖的文件不載入元件', async () => {
   const viewer = (f) => `chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(fileUrl(f))}`;
   const page = await open(viewer('mermaid.md'));
-  await page.waitForSelector('.mdr-mermaid svg', { timeout: 15000 });
-  const svgs = await page.$$eval('.mdr-mermaid svg', (s) => s.length);
+  await page.waitForSelector('.mdr-mermaid.is-ready > svg', { timeout: 15000 });
+  const svgs = await page.$$eval('.mdr-mermaid.is-ready > svg', (s) => s.length);
   await page.close();
   const plain = await open(viewer('sample-zh.md'));
   const loaded = await plain.evaluate(() => typeof window.mermaid !== 'undefined');
@@ -1026,6 +1029,88 @@ await check('11 介面互動', '系統「減少動態效果」時動畫關閉', 
   await page.close();
   assert(d.split(',').every((x) => parseFloat(x) <= 0.001), `動畫時間 ${d}`);
   return `動畫時間 ${d.split(',')[0]}`;
+});
+
+// ========== 12 載入與過場 ==========
+const viewerOf = (url) => `chrome-extension://${EXT_ID}/pages/viewer.html?src=${encodeURIComponent(url)}`;
+// 每 30ms 看一次畫面上有沒有整頁過場,回傳 [{ t, visible }]
+async function watchLoader(page, ms) {
+  const seen = [];
+  const start = Date.now();
+  while (Date.now() - start < ms) {
+    const v = await page.evaluate(() => {
+      const el = document.querySelector('.mdr-page-loader');
+      return el ? el.classList.contains('is-visible') : null;
+    }).catch(() => null);
+    seen.push({ t: Date.now() - start, v });
+    await sleep(30);
+  }
+  return seen;
+}
+await check('12 載入與過場', '閱讀頁讀得慢:0.3 秒後浮出整頁過場,讀完淡出並排版', async () => {
+  const page = await context.newPage();
+  await page.setViewportSize({ width: 1100, height: 800 });
+  page.goto(viewerOf(`${BASE}/slow/test.md`)).catch(() => {});
+  const seen = await watchLoader(page, 1000);
+  const early = seen.filter((x) => x.t < 200).every((x) => !x.v);
+  const shown = seen.some((x) => x.v);
+  const parts = await page.evaluate(() => {
+    const el = document.querySelector('.mdr-page-loader');
+    return { mark: !!el?.querySelector('.mdr-page-loader-mark .mdr-icon'), bar: !!el?.querySelector('.mdr-linear'), text: el?.textContent || '', role: el?.getAttribute('role') };
+  });
+  await page.screenshot({ path: join(OUTPUT, 'page-loader.png') });
+  await page.waitForFunction(() => document.documentElement.dataset.mdr === 'rendered' && !document.querySelector('.mdr-page-loader'), null, { timeout: 5000 });
+  await page.close();
+  assert(early && shown && parts.mark && parts.bar && parts.text.includes('正在開啟文件') && parts.role === 'status', JSON.stringify({ early, shown, parts }));
+  return '0.2 秒內不出現 → 過場 → 排版完成後移除';
+});
+await check('12 載入與過場', '閱讀頁讀得快:完全不出現過場(不閃一下)', async () => {
+  const page = await context.newPage();
+  page.goto(viewerOf(`${BASE}/plain/test.md`)).catch(() => {});
+  const seen = await watchLoader(page, 800);
+  const mdr = await page.evaluate(() => document.documentElement.dataset.mdr);
+  await page.close();
+  assert(seen.every((x) => x.v === null) && mdr === 'rendered', JSON.stringify({ mdr, seen: seen.filter((x) => x.v !== null).length }));
+  return '沒有出現過場';
+});
+await check('12 載入與過場', '流程圖載入中先佔位並轉圈,畫好後換成圖', async () => {
+  const page = await context.newPage();
+  await page.goto(fileUrl('mermaid.md'), { waitUntil: 'domcontentloaded' });
+  // 佔位只存在一下子:轉圈與文字在同一瞬間讀
+  const label = await page.waitForFunction(() => {
+    const box = document.querySelector('.mdr-mermaid.is-loading');
+    return box?.querySelector('.mdr-spinner') ? box.textContent : null;
+  }, null, { timeout: 5000, polling: 10 }).then((h) => h.jsonValue()).catch(() => '');
+  const loading = !!label;
+  await page.waitForSelector('.mdr-mermaid.is-ready > svg', { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.mdr-mermaid.is-loading'), null, { timeout: 15000 });
+  const leftover = await page.$$eval('.mdr-mermaid .mdr-spinner', (s) => s.length);
+  const errIcon = await page.$$eval('.mdr-mermaid-error', (n) => n.every((e) => e.querySelector('.mdr-icon') && !e.textContent.includes('⚠')));
+  await page.close();
+  assert(loading && label.includes('正在畫流程圖') && leftover === 0 && errIcon, JSON.stringify({ loading, label, leftover, errIcon }));
+  return '佔位轉圈 → 圖;錯誤訊息用圖示';
+});
+await check('12 載入與過場', '排版 ↔ 原始碼:淡出淡入切換', async () => {
+  const page = await open(fileUrl('sample-zh.md'));
+  await page.click('.mdr-toolbar [data-action="raw"]');
+  const out = await page.$eval('.mdr-page', (m) => m.classList.contains('mdr-fade-out'));
+  await sleep(150);
+  const inn = await page.$eval('.mdr-page', (m) => m.classList.contains('mdr-fade-in') && getComputedStyle(m).animationName === 'mdr-fade-through');
+  const raw = await page.$eval('.mdr-raw', (r) => !r.hidden);
+  await page.close();
+  assert(out && inn && raw, JSON.stringify({ out, inn, raw }));
+  return '淡出 → 換內容 → 淡入放大';
+});
+await check('12 載入與過場', '減少動態效果時,載入動畫改成明暗呼吸(不停止)', async () => {
+  const page = await context.newPage();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  page.goto(viewerOf(`${BASE}/slow/test.md`)).catch(() => {});
+  await page.waitForSelector('.mdr-page-loader.is-visible', { timeout: 3000 });
+  const a = await page.$eval('.mdr-page-loader-mark', (m) => { const s = getComputedStyle(m); return [s.animationName, s.animationDuration, s.animationIterationCount]; });
+  await page.waitForFunction(() => document.documentElement.dataset.mdr === 'rendered', null, { timeout: 5000 });
+  await page.close();
+  assert(a[0] === 'mdr-breathe-opacity' && a[1] === '1.6s' && a[2] === 'infinite', a.join());
+  return a.join(' / ');
 });
 
 // ========== 2 下載(三種模式)==========

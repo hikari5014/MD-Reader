@@ -133,12 +133,15 @@
       if (!b) return;
       const action = b.dataset.action;
       if (action === 'raw') {
-        raw.hidden = !raw.hidden;
-        article.hidden = !raw.hidden;
-        b.classList.toggle('is-on', !raw.hidden);
-        b.dataset.tip = raw.hidden ? '原始碼' : '回到排版畫面';
+        const showRaw = raw.hidden;
+        b.classList.toggle('is-on', showRaw);
+        b.dataset.tip = showRaw ? '回到排版畫面' : '原始碼';
         b.setAttribute('aria-label', b.dataset.tip);
-        b.querySelector('.mdr-icon').dataset.icon = raw.hidden ? 'code' : 'article';
+        b.querySelector('.mdr-icon').dataset.icon = showRaw ? 'article' : 'code';
+        MDR.swap(raw.parentElement, () => { // 排版 ↔ 原始碼:淡出淡入切換
+          raw.hidden = !showRaw;
+          article.hidden = showRaw;
+        });
       } else if (action === 'print') {
         globalThis.print();
       } else if (action === 'settings') {

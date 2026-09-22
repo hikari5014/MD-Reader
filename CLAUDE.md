@@ -29,6 +29,7 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
   - 圖示一律用 Google Material Symbols Rounded:`MDR.icon('名稱')` 或 `<span class="mdr-icon" data-icon="名稱" aria-hidden="true">`;**新圖示要先加進 `scripts/fetch-icons.mjs` 的 ICONS 再跑 `npm run icons:font`**(字型只含子集),不要再用表情符號當介面圖示。
   - 可按的元素加 `.mdr-ix`(滑過、按下、焦點光暈),並在容器呼叫 `MDR.enableRipple()`;按鈕樣式用 `.mdr-btn-primary` / `.mdr-btn` / `.mdr-btn-text` / `.mdr-icon-btn`,開關 `.mdr-switch`,分段 `.mdr-seg`(改選中後呼叫 `MDR.moveSegThumb`)。
   - 動畫時間用 `--mdr-fast/med/slow`、曲線用 `--mdr-ease` / `--mdr-ease-spring`;提示泡泡用 `data-tip`(佔用 `::after`),其他裝飾用 `::before`。
+  - **載入與過場**(v1.2):等待一律包 `MDR.withLoader(工作, 顯示, 隱藏)`(0.3 秒後才顯示、至少停 0.5 秒);轉圈 `MDR.spinner(大小)`、開檔過場 `MDR.pageLoader`(掛在 `<html>`,因為 `mount` 會換掉 body)、內容切換 `MDR.swap`;新的循環動畫要加進 ui.css 結尾「減少動態效果」的例外(改呼吸、不停止)。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 
