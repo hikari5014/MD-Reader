@@ -1,0 +1,37 @@
+# 手機版(pwa/)自動發布到 GitHub Pages:https://hikari5014.github.io/MD-Reader/pwa/
+# 只放手機版用得到的檔案(pwa/ + 插件的排版引擎、樣式、第三方元件),文件、測試不會上網站
+name: 發布手機版到 GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: ['pwa/**', 'extension/core/**', 'extension/styles/**', 'extension/vendor/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}pwa/
+    steps:
+      - uses: actions/checkout@v4
+      - name: 組出網站
+        run: |
+          mkdir -p _site/extension
+          cp -r pwa _site/pwa
+          cp -r extension/core extension/styles extension/vendor _site/extension/
+          # 網站根目錄直接轉到手機版
+          printf '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=pwa/"><title>MD隨手讀</title><a href="pwa/">MD隨手讀 手機版</a>\n' > _site/index.html
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

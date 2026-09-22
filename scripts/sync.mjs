@@ -39,6 +39,10 @@ for (const f of readdirSync(nm('katex', 'dist', 'fonts')).filter((f) => f.endsWi
   copyFileSync(nm('katex', 'dist', 'fonts', f), join(vendor, 'katex', 'fonts', f));
 }
 rows.push(`| katex/katex.min.css + fonts/*.woff2 | katex | ${version('katex')} | MIT |`);
+// iPhone 網頁 App(pwa/)用的 KaTeX 樣式:一般網站,字型用相對路徑指到插件的 vendor
+mkdirSync(join(root, 'pwa', 'vendor'), { recursive: true });
+writeFileSync(join(root, 'pwa', 'vendor', 'katex.min.css'),
+  css.replaceAll('chrome-extension://__MSG_@@extension_id__/vendor/katex/fonts/', '../../extension/vendor/katex/fonts/'));
 
 writeFileSync(join(vendor, 'VERSIONS.md'),
   `# 第三方元件版本\n\n由 \`npm run sync\` 產生,請勿手改。\n\n| 檔案 | 套件 | 版本 | 授權 |\n|---|---|---|---|\n${rows.join('\n')}\n`);

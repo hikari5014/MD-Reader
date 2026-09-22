@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-mdr="pwa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MD隨手讀</title>
+<meta name="description" content="在手機上閱讀 Markdown(.md)檔,看得懂 Obsidian 語法。檔案只在手機裡讀,不會上傳。">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MD隨手讀">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../extension/styles/reader.css">
+<link rel="stylesheet" href="../extension/styles/ui.css">
+<link rel="stylesheet" href="pwa.css">
+</head>
+<body>
+<main class="pwa-home">
+  <header class="pwa-head">
+    <img src="icons/icon-192.png" width="36" height="36" alt="">
+    <h1>MD隨手讀</h1>
+    <button type="button" class="mdr-icon-btn mdr-ix" id="settings-btn" aria-label="設定" data-tip="設定"><span class="mdr-icon" data-icon="tune" aria-hidden="true"></span></button>
+  </header>
+  <p class="pwa-note"><span class="mdr-icon" data-icon="lock" aria-hidden="true"></span>檔案只在這支手機裡讀,不會上傳</p>
+
+  <div class="pwa-install" id="install" hidden>
+    <span class="mdr-icon" data-icon="add_to_home_screen" aria-hidden="true"></span>
+    <div><b>加到主畫面,像 App 一樣用</b><br>點 Safari 下方的 <span class="mdr-icon" data-icon="ios_share" aria-label="分享"></span> 分享 →「加入主畫面」。加入後沒網路也能開。</div>
+    <button type="button" class="mdr-icon-btn mdr-ix" id="install-close" aria-label="不再提示"><span class="mdr-icon" data-icon="close" aria-hidden="true"></span></button>
+  </div>
+
+  <div class="pwa-entries">
+    <label class="pwa-entry mdr-ix" id="file-entry">
+      <input type="file" id="file-input" class="pwa-visually-hidden">
+      <span class="pwa-entry-icon"><span class="mdr-icon" data-icon="folder_open" aria-hidden="true"></span></span>
+      <span class="pwa-entry-text"><b>選擇檔案</b><small>iCloud Drive、「檔案」App 裡的 .md</small></span>
+    </label>
+    <button type="button" class="pwa-entry mdr-ix" id="paste-btn">
+      <span class="pwa-entry-icon"><span class="mdr-icon" data-icon="content_paste" aria-hidden="true"></span></span>
+      <span class="pwa-entry-text"><b>貼上文字</b><small>從別的 App 複製過來的 Markdown</small></span>
+    </button>
+    <button type="button" class="pwa-entry mdr-ix" id="url-btn">
+      <span class="pwa-entry-icon"><span class="mdr-icon" data-icon="language" aria-hidden="true"></span></span>
+      <span class="pwa-entry-text"><b>輸入網址</b><small>例如 GitHub 上的 .md</small></span>
+    </button>
+    <button type="button" class="pwa-entry mdr-ix" id="drive-btn">
+      <span class="pwa-entry-icon"><span class="mdr-icon" data-icon="cloud" aria-hidden="true"></span></span>
+      <span class="pwa-entry-text"><b>Google Drive</b><small>登入後挑雲端硬碟裡的 .md</small></span>
+    </button>
+  </div>
+
+  <section class="pwa-recent">
+    <h2><span class="mdr-icon" data-icon="history" aria-hidden="true"></span>最近開過</h2>
+    <ul class="pwa-list" id="recent"></ul>
+    <p class="pwa-empty" id="recent-empty" hidden>還沒有開過文件。開過的文件會連內容一起存在這支手機,沒網路也能重看。</p>
+  </section>
+  <p class="pwa-foot" id="version"></p>
+</main>
+
+<!-- 貼上文字 -->
+<div class="pwa-sheet" id="paste-sheet" role="dialog" aria-modal="true" aria-labelledby="paste-title" hidden>
+  <div class="pwa-sheet-handle" aria-hidden="true"></div>
+  <h2 id="paste-title">貼上文字</h2>
+  <textarea class="pwa-input pwa-textarea" id="paste-text" placeholder="把 Markdown 貼在這裡(也可以貼一個網址)"></textarea>
+  <div class="pwa-row-actions">
+    <button type="button" class="mdr-btn mdr-ix" id="paste-clip"><span class="mdr-icon" data-icon="content_paste" aria-hidden="true"></span>從剪貼簿貼上</button>
+    <button type="button" class="mdr-btn-primary mdr-ix" id="paste-go"><span class="mdr-icon" data-icon="arrow_forward" aria-hidden="true"></span>開啟</button>
+  </div>
+</div>
+
+<!-- 輸入網址 -->
+<div class="pwa-sheet" id="url-sheet" role="dialog" aria-modal="true" aria-labelledby="url-title" hidden>
+  <div class="pwa-sheet-handle" aria-hidden="true"></div>
+  <h2 id="url-title">輸入網址</h2>
+  <form id="url-form">
+    <input class="pwa-input" id="url-input" type="url" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="https://github.com/…/README.md" required>
+    <p class="pwa-hint">GitHub、GitLab 的檔案頁網址會自動換成原始檔。有些網站不開放別的網站讀取,這時請下載到手機後用「選擇檔案」。</p>
+    <div class="pwa-row-actions">
+      <button type="submit" class="mdr-btn-primary mdr-ix" id="url-go"><span class="mdr-icon" data-icon="arrow_forward" aria-hidden="true"></span>開啟</button>
+    </div>
+  </form>
+</div>
+
+<!-- Google Drive -->
+<div class="pwa-sheet pwa-sheet-tall" id="drive-sheet" role="dialog" aria-modal="true" aria-labelledby="drive-title" hidden>
+  <div class="pwa-sheet-handle" aria-hidden="true"></div>
+  <h2 id="drive-title"><span class="mdr-icon" data-icon="cloud" aria-hidden="true"></span>Google Drive</h2>
+  <div id="drive-body"></div>
+</div>
+
+<!-- 設定 -->
+<div class="pwa-sheet" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+  <div class="pwa-sheet-handle" aria-hidden="true"></div>
+  <h2 id="settings-title">設定</h2>
+  <div class="pwa-field"><span>主題</span>
+    <div class="mdr-seg" id="home-theme">
+      <button type="button" class="mdr-ix" data-value="system">自動</button>
+      <button type="button" class="mdr-ix" data-value="light">淺色</button>
+      <button type="button" class="mdr-ix" data-value="dark">深色</button>
+      <button type="button" class="mdr-ix" data-value="sepia">護眼</button>
+    </div>
+  </div>
+  <p class="pwa-hint">字級、行寬等閱讀設定,在閱讀畫面右上角的 <span class="mdr-icon" data-icon="settings" aria-label="設定"></span> 裡調整。</p>
+  <div class="pwa-row-actions">
+    <button type="button" class="mdr-btn is-danger mdr-ix" id="clear-btn"><span class="mdr-icon" data-icon="delete" aria-hidden="true"></span>清除最近開過</button>
+  </div>
+</div>
+
+<script src="platform.js"></script>
+<script src="config.js"></script>
+<script src="../extension/core/ui.js"></script>
+<script src="../extension/core/detect.js"></script>
+<script src="../extension/core/settings.js"></script>
+<script src="../extension/core/library.js"></script>
+<script src="shell.js"></script>
+<script src="drive.js"></script>
+<script src="home.js"></script>
+</body>
+</html>

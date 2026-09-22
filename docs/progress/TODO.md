@@ -2,7 +2,8 @@
 
 ## 🔥 進行中
 - [ ] **v1.3.0 觸控驗收**(等 PM):`docs/verification/v1.3.0-checklist.md`(需要觸控螢幕,或用開發者工具模擬)
-- [ ] **iPhone 版(PWA)是否要做**(等 PM 決定):評估報告 `docs/plans/v2.0.0-pwa-plan.html`
+- [ ] **v2.0.0 iPhone 實機驗收**(等 PM):`docs/verification/v2.0.0-checklist.md`(加到主畫面、選檔、離線、分享)
+- [ ] **Google Drive 用戶端 ID**(等 PM 申請):照 `docs/guide/PWA-GOOGLE-DRIVE.md` 申請後貼給 Claude,填進 `pwa/config.js` 並發布
 - [ ] **v1.2.0 手感驗收**(等 PM):`docs/verification/v1.2.0-checklist.md`(載入過場快慢、光圈是否太搶眼)
 - [ ] **v1.1.0 手感驗收**(等 PM):`docs/verification/v1.1.0-checklist.md`(動畫快慢、圖示風格請 PM 回饋)
 - [ ] **v1.0.0 總驗收**(等 PM):`docs/verification/v1.0.0-checklist.md`(已整合 v0.2 ~ v0.6 所有人工項目);圖解版在 `docs/plans/v1.0.0-plan.html` 第 8 節
@@ -13,6 +14,7 @@
 - 知識庫整理(非插件工作):修正屬性格式不標準的筆記,清單見 v1.0.0 驗收清單第 6 節
 
 ## ✅ 已完成
+- [x] v2.0.0 iPhone 網頁 App(PWA):選檔、貼上、網址、Google Drive 登入、最近開過(存在手機)、閱讀設定底部面板、分享、離線、GitHub Pages 自動發布;手機版自動化 22/22、插件 89/89(2026-09-22)
 - [x] v1.3.0 觸控互動:點完不黏住滑過狀態、按下回饋、48px 觸控目標、長按看說明、目錄抽屜往左拖關閉;自動化測試 89/89(2026-09-22)
 - [x] v1.2.0 載入與過場動畫:開檔過場(0.3 秒後才出現、至少停 0.5 秒)、流程圖佔位轉圈、排版/原始碼淡出淡入、減少動態效果時改呼吸;自動化測試 85/85(2026-09-22)
 - [x] v0.1.0 計劃書 `docs/plans/v0.1.0-plan.html`,PM 拍板 10 項決定(2026-09-18)

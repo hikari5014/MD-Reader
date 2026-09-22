@@ -1,6 +1,6 @@
 # MD隨手讀 — 專案指示
 
-Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃見 `docs/plans/v0.1.0-plan.html`;每次對話先讀 `docs/progress/TODO.md` 與 `PROGRESS.md`。
+Chrome 全方位 Markdown 閱讀插件(Manifest V3)+ iPhone 網頁 App(`pwa/`,v2.0 起)。PM 決策、版本規劃見 `docs/plans/v0.1.0-plan.html`;每次對話先讀 `docs/progress/TODO.md` 與 `PROGRESS.md`。
 
 ## PM 已拍板(2026-09-18)
 
@@ -34,9 +34,20 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 
+## 手機版(pwa/,v2.0)
+
+- **排版引擎只有一份**:`pwa/` 直接載入 `../extension/core/`,不複製。引擎若新增 `chrome.*` 用法,要同步在 `pwa/platform.js` 的轉接層補上(否則手機版會壞)。
+- **發布**:`git push` 到 GitHub(hikari5014/MD-Reader)→ `.github/workflows/pages.yml` 自動發布到 https://hikari5014.github.io/MD-Reader/pwa/。
+- **每次改手機版會用到的檔**(pwa/、core/、styles/、vendor/):`pwa/sw.js` 與 `pwa/platform.js` 的 `VERSION` 要跟 package.json 一致(`npm run test:pwa` 會檢查),手機才會換新檔;新增的檔要加進 `sw.js` 的 `SHELL`。
+- **圖示字型**:ui.css 的字型網址是插件專用的,`pwa/pwa.css` 用**同名** `"MDR Symbols"` 重新宣告;不要改成別的名字(樣式裡直接寫字型名稱的地方會變成英文字)。
+- **KaTeX 樣式**:`npm run sync` 會產生 `pwa/vendor/katex.min.css`(字型指到插件的 vendor)。
+- **Google Drive**:用戶端 ID 放 `pwa/config.js`(公開識別碼,可以進版控;**用戶端密鑰絕對不要放**)。登入用整頁跳轉 + drive.readonly,憑證存 localStorage 1 小時。
+- iPhone 做不到:註冊 .md 開啟程式、分享選單、開資料夾(iOS 27 仍不支援)。要做到只能包成原生 App(見 `docs/plans/v2.0.0-pwa-plan.html` 做法 B)。
+- 測試:`npm run test:pwa`(Chromium 模擬 iPhone 13);Playwright 假造的回應不受 CORS 限制,「對方不開放讀取」用 `route.abort()` 模擬。
+
 ## 版本流程(PM 授權自行 commit、驗證、發布)
 
-每版:實作 → `npm run sync` → `npm test` + `npm run test:vault` → 更新四份文件(CHANGELOG、checklist、TODO、PROGRESS)→ `git commit -m "v{版本}: 白話摘要"` → `npm run release`(zip 安裝包 + git tag)。
+每版:實作 → `npm run sync` → `npm test` + `npm run test:vault`(+ 動到手機版時 `npm run test:pwa`) → 更新四份文件(CHANGELOG、checklist、TODO、PROGRESS)→ `git commit -m "v{版本}: 白話摘要"` → `npm run release`(zip 安裝包 + git tag)→ `git push origin main --tags`(自動發布手機版)。
 
 ## 測試
 

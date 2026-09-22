@@ -59,6 +59,15 @@ Google 自己的預覽已經能顯示一般 Markdown。MD隨手讀 的按鈕是�
 
 從 Drive 開檔要先下載內容,新分頁會先出現紫色書本圖示與「正在從 Google Drive 讀取…」,讀完就會顯示文件。
 
+## iPhone 手機版
+
+用 iPhone 的 Safari 打開 **https://hikari5014.github.io/MD-Reader/pwa/** → 點分享 →「加入主畫面」,之後像 App 一樣從主畫面打開,沒網路也能用。
+
+- 四個入口:**選擇檔案**(「檔案」App、iCloud Drive)、**貼上文字**、**輸入網址**、**Google Drive**
+- 閱讀畫面跟電腦版一樣;右上齒輪調字級、行寬、主題,也能把文件分享給別的 App
+- 開過的文件連內容存在手機裡,首頁「最近開過」隨時重看
+- iPhone 的限制:不能在「檔案」App 點 .md 直接用它打開,要先開 App 再選檔;也不能開同資料夾的其他筆記(填了 Obsidian 保險庫名稱,連結會改用 Obsidian 開)
+
 ## 設定一覽
 
 | 分頁 | 可以調的 |
