@@ -182,8 +182,8 @@ html[data-mdr] .mdr-toc a::before {
   transform: scaleY(0);
   transition: transform var(--mdr-med) var(--mdr-ease);
 }
-html[data-mdr] .mdr-toc a:hover { background: var(--mdr-hover); color: var(--mdr-fg); }
-html[data-mdr] .mdr-toc a:hover::before { transform: scaleY(0.6); }
+@media (hover: hover) { html[data-mdr] .mdr-toc a:hover { background: var(--mdr-hover); color: var(--mdr-fg); } }
+@media (hover: hover) { html[data-mdr] .mdr-toc a:hover::before { transform: scaleY(0.6); } }
 html[data-mdr] .mdr-toc a.is-active { color: var(--mdr-accent); background: var(--mdr-hover); font-weight: 600; }
 html[data-mdr] .mdr-toc a.is-active::before { transform: scaleY(1); }
 html[data-mdr] .mdr-toc a:focus-visible { outline: none; box-shadow: var(--mdr-ring); }
@@ -217,13 +217,13 @@ html[data-mdr] .mdr-toolbar button {
   color: var(--mdr-muted);
   cursor: pointer;
 }
-html[data-mdr] .mdr-toolbar button:hover { background: var(--mdr-hover); color: var(--mdr-accent); }
+@media (hover: hover) { html[data-mdr] .mdr-toolbar button:hover { background: var(--mdr-hover); color: var(--mdr-accent); } }
 html[data-mdr] .mdr-toolbar button:active { background: var(--mdr-press); }
 html[data-mdr] .mdr-toolbar button.is-on { background: var(--mdr-accent); color: #fff; }
 html[data-mdr] .mdr-toolbar button.is-on .mdr-icon { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
 html[data-mdr] .mdr-toolbar .mdr-icon { --mdr-icon-size: 20px; }
 html[data-mdr] .mdr-toolbar .mdr-icon.is-spinning { animation: mdr-spin-in 460ms var(--mdr-ease-spring); }
-html[data-mdr] .mdr-toolbar button[data-action="settings"]:hover .mdr-icon { transform: rotate(60deg); }
+@media (hover: hover) { html[data-mdr] .mdr-toolbar button[data-action="settings"]:hover .mdr-icon { transform: rotate(60deg); } }
 
 /* 新版本小紅點(提示泡泡用了 ::after,紅點用 ::before) */
 html[data-mdr] .mdr-toolbar button.has-update { color: var(--mdr-accent); }
@@ -282,9 +282,9 @@ html[data-mdr] .mdr-body li.mdr-task input {
 html[data-mdr] .mdr-body li.mdr-task:has(> input:checked),
 html[data-mdr] .mdr-body li.mdr-task:has(> p > input:checked) { color: var(--mdr-muted); text-decoration: line-through; text-decoration-color: var(--mdr-faint); }
 html[data-mdr] .mdr-body a { color: var(--mdr-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--mdr-accent) 40%, transparent); text-underline-offset: 3px; transition: text-decoration-color var(--mdr-med) var(--mdr-ease), text-underline-offset var(--mdr-med) var(--mdr-ease); }
-html[data-mdr] .mdr-body a:hover { text-underline-offset: 4px; }
+@media (hover: hover) { html[data-mdr] .mdr-body a:hover { text-underline-offset: 4px; } }
 html[data-mdr] .mdr-body a:focus-visible { outline: none; border-radius: 4px; box-shadow: var(--mdr-ring); }
-html[data-mdr] .mdr-body a:hover { text-decoration-color: currentColor; }
+@media (hover: hover) { html[data-mdr] .mdr-body a:hover { text-decoration-color: currentColor; } }
 html[data-mdr] .mdr-body blockquote { margin-left: 0; padding: 0.1em 1em; border-left: 3px solid var(--mdr-accent); color: var(--mdr-muted); }
 html[data-mdr] .mdr-body blockquote > :last-child { margin-bottom: 0; }
 html[data-mdr] .mdr-body code { font: 0.88em/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--mdr-code-bg); padding: 0.15em 0.35em; border-radius: 4px; }
@@ -348,7 +348,7 @@ html[data-mdr] .callout[data-callout="quote"] { --callout-color: var(--mdr-c-gra
 html[data-mdr] .callout-title { display: flex; align-items: center; gap: 8px; color: rgb(var(--callout-color)); font-weight: 600; line-height: 1.4; }
 html[data-mdr] .callout-icon { --mdr-icon-size: 1.15em; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
 html[data-mdr] summary.callout-title { margin: -6px -8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; list-style: none; transition: background-color var(--mdr-med) var(--mdr-ease); }
-html[data-mdr] summary.callout-title:hover { background: rgba(var(--callout-color), 0.12); }
+@media (hover: hover) { html[data-mdr] summary.callout-title:hover { background: rgba(var(--callout-color), 0.12); } }
 html[data-mdr] summary.callout-title:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(var(--callout-color), 0.35); }
 html[data-mdr] summary.callout-title::-webkit-details-marker { display: none; }
 html[data-mdr] summary.callout-title::after {
@@ -371,7 +371,7 @@ html[data-mdr] .callout-content > :last-child { margin-bottom: 0; }
 
 /* 雙中括號連結、嵌入 */
 html[data-mdr] .mdr-body a.mdr-embed-note { transition: background-color var(--mdr-med) var(--mdr-ease), transform var(--mdr-fast) var(--mdr-ease); }
-html[data-mdr] .mdr-body a.mdr-embed-note:hover { background: var(--mdr-hover); }
+@media (hover: hover) { html[data-mdr] .mdr-body a.mdr-embed-note:hover { background: var(--mdr-hover); } }
 html[data-mdr] .mdr-body a.mdr-embed-note:active { transform: scale(0.99); }
 html[data-mdr] .mdr-body a.mdr-embed-note { display: block; margin: 0.8em 0; padding: 0.6em 1em; border: 1px solid var(--mdr-line); border-left: 3px solid var(--mdr-accent); border-radius: 6px; text-decoration: none; }
 html[data-mdr] .mdr-body a.mdr-embed-note::before { content: "description"; margin-right: 6px; font: 20px/1 "MDR Symbols"; font-feature-settings: "liga"; vertical-align: -0.25em; color: var(--mdr-muted); }
@@ -386,7 +386,7 @@ html[data-mdr] .mdr-props { margin: 0 0 1.8em; padding-bottom: 0.8em; border-bot
 html[data-mdr] .mdr-props > summary { margin-bottom: 0.5em; color: var(--mdr-faint); font-size: 0.85em; font-weight: 600; cursor: pointer; list-style: none; }
 html[data-mdr] .mdr-props > summary::-webkit-details-marker { display: none; }
 html[data-mdr] .mdr-props > summary { display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px 2px 2px; border-radius: 8px; transition: background-color var(--mdr-med) var(--mdr-ease), color var(--mdr-med) var(--mdr-ease); }
-html[data-mdr] .mdr-props > summary:hover { background: var(--mdr-hover); color: var(--mdr-accent); }
+@media (hover: hover) { html[data-mdr] .mdr-props > summary:hover { background: var(--mdr-hover); color: var(--mdr-accent); } }
 html[data-mdr] .mdr-props > summary:focus-visible { outline: none; box-shadow: var(--mdr-ring); }
 html[data-mdr] .mdr-props > summary::before { content: "chevron_right"; font: 18px/1 "MDR Symbols"; font-feature-settings: "liga"; transition: transform var(--mdr-med) var(--mdr-ease); }
 html[data-mdr] .mdr-props[open] > summary::before { transform: rotate(90deg); }
@@ -439,3 +439,24 @@ html[data-mdr] .mdr-error p { margin: 12px 0 0; line-height: 1.7; }
   html[data-mdr] .mdr-shell[data-toc="open"] { padding-left: 0; }
   html[data-mdr] .mdr-page { max-width: none; padding: 0; }
 }
+
+/* ---------- 觸控 ---------- */
+@media (hover: none) {
+  html[data-mdr] .mdr-toolbar button:active,
+  html[data-mdr] .mdr-toc a:active,
+  html[data-mdr] .mdr-body a.mdr-embed-note:active,
+  html[data-mdr] .mdr-props > summary:active { background: var(--mdr-press); }
+  html[data-mdr] summary.callout-title:active { background: rgba(var(--callout-color), 0.18); }
+  html[data-mdr] .mdr-toolbar button[data-action="settings"]:active .mdr-icon { transform: rotate(60deg); }
+}
+@media (pointer: coarse) {
+  html[data-mdr] .mdr-toolbar button { width: 48px; height: 48px; }
+  html[data-mdr] .mdr-toc a { padding-top: 10px; padding-bottom: 10px; }
+  html[data-mdr] .mdr-toc a::before { top: 12px; bottom: 12px; }
+  html[data-mdr] summary.callout-title,
+  html[data-mdr] .mdr-props > summary { min-height: 44px; }
+}
+/* 目錄抽屜(窄螢幕):手指往左拖關閉,拖的時候跟著手指走 */
+html[data-mdr] .mdr-shell[data-toc="open"] .mdr-toc { transform: translateX(var(--mdr-toc-dx, 0)); }
+html[data-mdr] .mdr-toc { touch-action: pan-y; } /* 上下捲動歸瀏覽器、左右拖歸我們 */
+html[data-mdr] .mdr-toc.is-dragging { transition: none; }

@@ -1113,6 +1113,89 @@ await check('12 載入與過場', '減少動態效果時,載入動畫改成明�
   return a.join(' / ');
 });
 
+// ========== 13 觸控 ==========
+// 用 CDP 把分頁模擬成觸控裝置(沒有滑鼠、手指操作),回傳頁面與送觸控事件的工具
+async function touchPage(url, width = 820) {
+  const page = await context.newPage();
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 2, mobile: true });
+  await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await page.goto(url, { waitUntil: 'load' });
+  await page.waitForTimeout(400);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  const center = (sel) => page.$eval(sel, (el) => { const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height }; });
+  const tap = async (sel) => { const c = await center(sel); await touch('touchStart', c.x, c.y); await sleep(40); await touch('touchEnd'); };
+  return { page, touch, center, tap };
+}
+await check('13 觸控', '觸控裝置:工具列按鈕放大到 48px,點完不會黏住滑過底色', async () => {
+  const { page, center, tap } = await touchPage(fileUrl('sample-zh.md'));
+  const mq = await page.evaluate(() => [matchMedia('(hover: none)').matches, matchMedia('(pointer: coarse)').matches]);
+  const btn = await center('[data-action="print"]');
+  const bg0 = await page.$eval('[data-action="theme"]', (b) => getComputedStyle(b).backgroundColor);
+  await tap('[data-action="theme"]');
+  await sleep(700);
+  const bg1 = await page.$eval('[data-action="theme"]', (b) => getComputedStyle(b).backgroundColor);
+  await resetSettings();
+  await page.close();
+  assert(mq[0] && mq[1] && btn.h >= 48 && bg0 === bg1, JSON.stringify({ mq, h: btn.h, bg0, bg1 }));
+  return `按鈕 ${btn.h}px;點完底色回到 ${bg1}`;
+});
+await check('13 觸控', '長按工具列按鈕 0.5 秒:沉下去 → 顯示說明,放手不觸發', async () => {
+  const { page, touch, center, tap } = await touchPage(fileUrl('sample-zh.md'));
+  const b = await center('[data-action="raw"]');
+  await touch('touchStart', b.x, b.y);
+  await sleep(200);
+  const sinking = await page.$eval('[data-action="raw"]', (el) => el.classList.contains('is-long-pressing'));
+  await sleep(600);
+  const tip = await page.$eval('[data-action="raw"]', (el) => el.classList.contains('is-tip-shown') && getComputedStyle(el, '::after').opacity === '1');
+  await page.screenshot({ path: join(OUTPUT, 'touch-longpress.png') });
+  await touch('touchEnd');
+  await sleep(250);
+  const rawShown = await page.$eval('.mdr-raw', (r) => !r.hidden);
+  await tap('[data-action="raw"]');
+  await sleep(250);
+  const tapWorks = await page.$eval('.mdr-raw', (r) => !r.hidden);
+  await page.close();
+  assert(sinking && tip && !rawShown && tapWorks, JSON.stringify({ sinking, tip, rawShown, tapWorks }));
+  return '長按看說明、放手不切換;下一次點擊正常';
+});
+await check('13 觸控', '窄螢幕目錄:手指往左拖跟著走,放手關閉;小拖一下彈回', async () => {
+  const { page, touch, center, tap } = await touchPage(fileUrl('toc-long.md'), 800);
+  await tap('[data-action="toc"]');
+  await sleep(400);
+  const opened = await page.$eval('.mdr-shell', (s) => s.dataset.toc);
+  const t = await center('.mdr-toc-title');
+  const drag = async (dist, check) => {
+    await touch('touchStart', t.x + 40, t.y + 60);
+    let mid = null;
+    for (let i = 1; i <= 10; i++) {
+      await touch('touchMove', t.x + 40 - (dist * i) / 10, t.y + 60);
+      await sleep(16);
+      if (i === 5 && check) mid = await page.$eval('.mdr-toc', (n) => n.classList.contains('is-dragging') && n.getBoundingClientRect().x < -1);
+    }
+    await sleep(80);
+    await touch('touchEnd');
+    await sleep(400);
+    return mid;
+  };
+  const followed = await drag(40, true);
+  const stayed = await page.$eval('.mdr-shell', (s) => s.dataset.toc);
+  await drag(150);
+  const closed = await page.$eval('.mdr-shell', (s) => s.dataset.toc);
+  await page.close();
+  assert(opened === 'open' && followed && stayed === 'open' && closed === 'closed', JSON.stringify({ opened, followed, stayed, closed }));
+  return '跟手 → 小拖彈回 → 拖過 1/3 關閉';
+});
+await check('13 觸控', '滑鼠裝置照舊:滑過顯示說明泡泡、按鈕維持 36px', async () => {
+  const page = await open(fileUrl('sample-zh.md'));
+  await page.hover('[data-action="print"]');
+  await sleep(600);
+  const r = await page.$eval('[data-action="print"]', (b) => ({ tip: getComputedStyle(b, '::after').opacity, h: b.getBoundingClientRect().height, hover: matchMedia('(hover: hover)').matches }));
+  await page.close();
+  assert(r.hover && r.tip === '1' && r.h === 36, JSON.stringify(r));
+  return '滑鼠裝置不受影響';
+});
+
 // ========== 2 下載(三種模式)==========
 await check('2 下載', '預設「跳通知」:下載 .md 後出現通知', async () => {
   await resetSettings();

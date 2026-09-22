@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MD隨手讀 iPhone 版評估</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_back,auto_stories,block,check_circle,cloud,content_copy,content_paste,dark_mode,description,folder_open,help,history,language,more_horiz,palette,phone_iphone,share,toc,warning&display=block">
+<style>
+  :root { --accent: #7c5cff; --ease: cubic-bezier(0.2, 0, 0, 1); --spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  body { font-family: system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f7f7fb; color: #222; }
+  .icon { font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal; font-size: 20px; line-height: 1; display: inline-block; vertical-align: -0.2em; font-feature-settings: "liga"; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20; }
+  .card { background: #fff; border: 1px solid #e7e5f0; border-radius: 18px; padding: 24px; }
+  .ix { transition: background-color 220ms var(--ease), transform 120ms var(--ease), box-shadow 220ms var(--ease); }
+  .ix:active { transform: scale(0.97); }
+  @media (hover: hover) { .ix:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); } }
+  .rise { animation: rise 320ms var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .ok { background: #dcfce7; color: #166534; } .no { background: #fee2e2; color: #991b1b; } .part { background: #fef3c7; color: #92400e; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .tab[aria-selected="true"] { background: var(--accent); color: #fff; }
+  /* 手機模型 */
+  .phone { width: 300px; height: 610px; border-radius: 46px; background: #111; padding: 12px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: #fff; }
+  .screen.dark { background: #1e1e1e; color: #dcddde; }
+  .notch { position: absolute; top: 8px; left: 50%; width: 96px; height: 28px; margin-left: -48px; border-radius: 20px; background: #111; z-index: 5; }
+  .view { position: absolute; inset: 0; padding: 48px 16px 20px; overflow: auto; transition: opacity 210ms var(--ease), transform 210ms var(--ease); }
+  .view[hidden] { display: block; opacity: 0; transform: scale(0.96); pointer-events: none; }
+  .entry { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; border-radius: 14px; background: #f4f2ff; text-align: left; }
+  .dark .entry { background: #2a2640; }
+  .entry .icon { color: var(--accent); font-size: 24px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 16px 24px; border-radius: 22px 22px 0 0; background: #fff; box-shadow: 0 -8px 30px rgba(0,0,0,.2); transform: translateY(110%); transition: transform 320ms var(--ease); z-index: 6; }
+  .dark .sheet { background: #262626; }
+  .sheet.open { transform: none; }
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity 320ms var(--ease); z-index: 5; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .md h1 { font-size: 20px; font-weight: 700; margin: 4px 0 10px; } .md h2 { font-size: 15px; font-weight: 700; margin: 14px 0 6px; } .md p { font-size: 13.5px; line-height: 1.75; margin: 6px 0; }
+  .callout { border-left: 3px solid #086ddd; background: rgba(8,109,221,.08); border-radius: 8px; padding: 8px 10px; font-size: 13px; margin: 10px 0; }
+  .toast { position: absolute; left: 50%; bottom: 24px; transform: translate(-50%, 40px); opacity: 0; padding: 8px 14px; border-radius: 999px; background: #222; color: #fff; font-size: 13px; transition: transform 320ms var(--spring), opacity 220ms var(--ease); z-index: 7; white-space: nowrap; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  /* 看板 */
+  .lane { min-height: 120px; }
+  .kcard { cursor: grab; }
+  .kcard.sortable-ghost { opacity: 0.4; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  g.node.risk rect, g.node.risk polygon, g.node.risk path { fill: #fee2e2 !important; stroke: #dc2626 !important; stroke-width: 2px !important; }
+  g.node.risk { cursor: help; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+</style>
+</head>
+<body>
+<div class="max-w-5xl mx-auto px-4 py-10">
+
+<header class="rise">
+  <p class="text-sm text-violet-600 font-semibold">MD隨手讀 · 可行性評估 · 2026-09-22</p>
+  <h1 class="text-3xl font-bold mt-1">能不能做成 iPhone 上的「網頁 App」(PWA)?</h1>
+  <p class="mt-3 text-lg"><b>可以做,而且現在的排版引擎大部分能直接沿用。</b>但有一個 iPhone 的硬限制:<b>只能「先打開 App 再選檔」</b>,沒辦法在「檔案」App 點 .md 直接用它打開,也不會出現在分享選單。</p>
+  <p class="mt-2 text-sm text-gray-500">PWA(Progressive Web App)= 用網頁做成的 App:用 Safari 打開網址 → 分享 → 加入主畫面,之後就像 App 一樣有圖示、全螢幕、可離線,不用上架 App Store、不用付費。</p>
+  <nav class="mt-5 flex flex-wrap gap-2 text-sm">
+    <a class="ix px-3 py-1.5 rounded-full border" href="#matrix">1. 能做 / 不能做</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#options">2. 三種做法比較</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#mockup">3. 畫面模擬</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#flow">4. 使用流程與風險</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#arch">5. 架構</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#board">6. 功能排序</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#timeline">7. 時程</a>
+    <a class="ix px-3 py-1.5 rounded-full border" href="#decide">8. 請你決定</a>
+  </nav>
+</header>
+
+<!-- 1 -->
+<section id="matrix" class="card mt-8 rise">
+  <h2 class="text-xl font-bold flex items-center gap-2"><span class="icon">phone_iphone</span>1. iPhone 上,網頁 App 能做到什麼?</h2>
+  <p class="text-sm text-gray-500 mt-1">依據 Apple 官方 WebKit 說明、MDN 相容性資料(2026-09-17 版,已含 iOS 27 / Safari 27)。點「來源」可以看原文。</p>
+  <div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-gray-500 border-b"><th class="py-2 pr-3">你想做的事</th><th class="py-2 pr-3">iPhone</th><th class="py-2">說明</th></tr></thead>
+    <tbody class="divide-y">
+      <tr><td class="py-2.5 pr-3">加到主畫面,像 App 一樣開</td><td><span class="pill ok">可以</span></td><td>iOS 26 起任何網站加入主畫面都預設以 App 方式開啟 <a class="text-violet-600" href="https://webkit.org/blog/17333/webkit-features-in-safari-26-0/" target="_blank">來源</a></td></tr>
+      <tr><td class="py-2.5 pr-3">在 App 裡按「選擇檔案」,從 iCloud Drive、「檔案」App 挑 .md</td><td><span class="pill ok">可以</span></td><td>最主要的開檔方式。注意:不能只篩出 .md(iPhone 的篩選有怪問題,會讓檔案變灰),所以會看到所有檔案</td></tr>
+      <tr><td class="py-2.5 pr-3">挑 Google Drive 上的檔</td><td><span class="pill part">間接可以</span></td><td>手機裝了 Google Drive App,它會出現在「選擇檔案」的位置清單裡,不用另外登入(需實機確認)</td></tr>
+      <tr><td class="py-2.5 pr-3">貼上文字、輸入網址(例如 GitHub 上的 .md)</td><td><span class="pill ok">可以</span></td><td>GitHub 的原始檔網址允許讀取(已實測);其他網站要看對方有沒有開放</td></tr>
+      <tr><td class="py-2.5 pr-3">記住最近開過、沒網路也能看</td><td><span class="pill ok">可以</span></td><td>存在手機本機;加到主畫面的 App 不會被「7 天沒開就清資料」規則刪掉 <a class="text-violet-600" href="https://webkit.org/blog/14403/updates-to-storage-policy/" target="_blank">來源</a></td></tr>
+      <tr><td class="py-2.5 pr-3">在「檔案」App 點 .md,選「用 MD隨手讀 打開」</td><td><span class="pill no">不行</span></td><td>iPhone 不支援網頁 App 註冊成檔案的開啟程式(iOS 27 仍不支援)</td></tr>
+      <tr><td class="py-2.5 pr-3">在其他 App 按「分享」→ 選 MD隨手讀</td><td><span class="pill no">不行</span></td><td>iPhone 不支援網頁 App 出現在分享選單 <a class="text-violet-600" href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest/Reference/share_target" target="_blank">來源</a></td></tr>
+      <tr><td class="py-2.5 pr-3">開一整個資料夾(例如整個 Obsidian 知識庫),點連結跳下一篇</td><td><span class="pill no">不行</span></td><td>iPhone 的網頁一次只能挑檔案,不能挑資料夾,也不能記住資料夾位置;所以筆記之間的雙中括號連結無法直接跳轉</td></tr>
+      <tr><td class="py-2.5 pr-3">像 Chrome 插件一樣從 Drive 按鈕直接開</td><td><span class="pill no">不行</span></td><td>插件靠 Chrome 的登入狀態讀檔,手機網頁 App 沒有這個權限;要改成正式串接 Google 登入,iPhone 上問題多(見第 4 節)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="options" class="card mt-8">
+  <h2 class="text-xl font-bold">2. 三種做法並排比較</h2>
+  <div class="grid md:grid-cols-3 gap-4 mt-4">
+    <div class="rounded-2xl border-2 border-violet-500 p-4 relative">
+      <span class="pill absolute -top-3 left-4 bg-violet-600 text-white">推薦第一步</span>
+      <h3 class="font-bold text-lg mt-1">A. 網頁 App(PWA)</h3>
+      <p class="text-sm text-gray-500">Safari 打開網址 → 加入主畫面</p>
+      <ul class="text-sm mt-3 space-y-1.5">
+        <li>✅ 免費、不用上架、不用每 7 天重裝</li>
+        <li>✅ 排版引擎、Obsidian 語法、主題、動畫都沿用</li>
+        <li>✅ iPhone、iPad、Android 都能用</li>
+        <li>❌ 要先開 App 再選檔</li>
+        <li>❌ 不能一次開整個資料夾</li>
+        <li>⚠️ 需要一個網址放 App(免費空間即可,檔案不會上傳)</li>
+      </ul>
+      <p class="text-sm mt-3"><b>工作量</b>:約 2–3 天</p>
+    </div>
+    <div class="rounded-2xl border p-4">
+      <h3 class="font-bold text-lg">B. 包成原生 App</h3>
+      <p class="text-sm text-gray-500">用 Capacitor 把網頁包成真正的 iPhone App</p>
+      <ul class="text-sm mt-3 space-y-1.5">
+        <li>✅ 「檔案」App 點 .md 直接開、出現在分享選單</li>
+        <li>✅ 可以開整個資料夾,連結能跳轉</li>
+        <li>✅ 排版引擎同樣沿用</li>
+        <li>❌ 每年 US$99 蘋果開發者費用(免費帳號裝的 App 7 天就失效)</li>
+        <li>❌ 需要 Mac + Xcode,更新要重新安裝</li>
+      </ul>
+      <p class="text-sm mt-3"><b>工作量</b>:A 完成後再加約 3–5 天</p>
+    </div>
+    <div class="rounded-2xl border p-4">
+      <h3 class="font-bold text-lg">C. Safari 擴充功能</h3>
+      <p class="text-sm text-gray-500">把 Chrome 插件轉成 iPhone Safari 的擴充</p>
+      <ul class="text-sm mt-3 space-y-1.5">
+        <li>✅ 在 Safari 瀏覽網路上的 .md 會自動排版</li>
+        <li>❌ <b>對手機裡的檔案沒用</b>(擴充碰不到本機檔)</li>
+        <li>❌ 一樣要包成 App、每年 US$99</li>
+      </ul>
+      <p class="text-sm mt-3"><b>判斷</b>:解決不了主要需求,不建議單獨做</p>
+    </div>
+  </div>
+  <p class="text-sm text-gray-500 mt-4">其他選項:用「捷徑」App 把分享的檔案轉給網頁 App → 網址長度只能帶約 2000 字,長一點的筆記就放不下,不建議。</p>
+  <div class="mt-4 rounded-xl bg-violet-50 p-4 text-sm"><b>建議路線</b>:先做 A,用一兩週。如果「每次都要進 App 挑檔」真的很煩,再做 B——A 的程式可以直接包進 B,不會白做。</div>
+</section>
+
+<!-- 3 -->
+<section id="mockup" class="card mt-8">
+  <h2 class="text-xl font-bold">3. 畫面模擬(可以點)</h2>
+  <p class="text-sm text-gray-500 mt-1">點入口看閱讀畫面;閱讀畫面右上角「⋯」打開底部面板切換主題;左上返回。</p>
+  <div class="flex flex-wrap gap-8 items-start mt-5">
+    <div class="phone mx-auto"><div class="screen" id="screen">
+      <div class="notch"></div>
+      <div class="view" id="v-home">
+        <div class="flex items-center gap-2"><span class="icon" style="color:var(--accent);font-size:28px;font-variation-settings:'FILL' 1">auto_stories</span><b class="text-lg">MD隨手讀</b></div>
+        <p class="text-xs text-gray-400 mt-1 mb-4">檔案只在這支手機讀,不會上傳</p>
+        <div class="space-y-2.5">
+          <button class="entry ix" data-open><span class="icon">folder_open</span><span><b class="block text-sm">選擇檔案</b><small class="text-gray-400">iCloud Drive、檔案、Google Drive</small></span></button>
+          <button class="entry ix" data-open><span class="icon">content_paste</span><span><b class="block text-sm">貼上文字</b><small class="text-gray-400">從別的 App 複製過來</small></span></button>
+          <button class="entry ix" data-open><span class="icon">language</span><span><b class="block text-sm">輸入網址</b><small class="text-gray-400">例如 GitHub 上的 .md</small></span></button>
+        </div>
+        <p class="text-xs font-semibold text-gray-400 mt-6 mb-2 flex items-center gap-1"><span class="icon" style="font-size:16px">history</span>最近開過</p>
+        <div class="text-sm divide-y">
+          <button class="ix w-full text-left py-3 flex items-center gap-2" data-open><span class="icon text-gray-400">description</span>週會紀錄.md</button>
+          <button class="ix w-full text-left py-3 flex items-center gap-2" data-open><span class="icon text-gray-400">description</span>嗅覺 AI 論文筆記.md</button>
+        </div>
+      </div>
+      <div class="view" id="v-read" hidden>
+        <div class="flex items-center justify-between mb-2">
+          <button class="ix w-11 h-11 rounded-xl flex items-center justify-center" id="back" aria-label="返回"><span class="icon">arrow_back</span></button>
+          <div class="flex"><button class="ix w-11 h-11 rounded-xl flex items-center justify-center" aria-label="目錄"><span class="icon">toc</span></button><button class="ix w-11 h-11 rounded-xl flex items-center justify-center" id="more" aria-label="更多"><span class="icon">more_horiz</span></button></div>
+        </div>
+        <div class="md">
+          <h1>週會紀錄</h1>
+          <div class="callout"><b>ⓘ 重點</b><br>下週三前交設計稿</div>
+          <h2>討論事項</h2>
+          <p>跟桌機版一樣的 Obsidian 風排版:提示框、屬性表、流程圖、數學公式都看得懂。</p>
+          <h2>待辦</h2>
+          <p>☑ 確認 iPhone 版要不要做<br>☐ 實機測試 Google Drive</p>
+        </div>
+      </div>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet">
+        <div class="w-9 h-1 rounded bg-gray-300 mx-auto mb-3"></div>
+        <b class="text-sm">主題</b>
+        <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+          <button class="ix border rounded-xl py-3" data-theme="light">淺色</button>
+          <button class="ix border rounded-xl py-3" data-theme="dark"><span class="icon" style="font-size:16px">dark_mode</span> 深色</button>
+        </div>
+        <button class="ix w-full mt-3 py-3 rounded-xl border text-sm flex items-center justify-center gap-1" id="share"><span class="icon" style="font-size:18px">share</span>分享這份文件</button>
+      </div>
+      <div class="toast" id="toast">已複製分享連結</div>
+    </div></div>
+    <div class="flex-1 min-w-[260px] text-sm space-y-3">
+      <p class="font-semibold">跟桌機插件的差別</p>
+      <ul class="list-disc pl-5 space-y-1.5 text-gray-600">
+        <li>首頁 = 桌機的小視窗:三個入口 + 最近開過</li>
+        <li>工具列變成手機版:返回、目錄、「⋯」底部面板(主題、字級、分享)</li>
+        <li>所有按鈕至少 44–48px、按下有回饋、支援長按說明、底部面板往下拖關閉(v1.3 的觸控準則)</li>
+        <li>最近開過會把<b>內容</b>一起存在手機裡(iPhone 記不住原檔位置,要重看只能靠自己存的那份)</li>
+        <li>避開瀏海與底部橫條,支援深色模式</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="flow" class="card mt-8">
+  <h2 class="text-xl font-bold">4. 使用流程與風險(紅色 = 風險,滑過看說明)</h2>
+  <div class="mermaid mt-4" id="flowchart">
+flowchart TD
+  A([點主畫面的 MD隨手讀]) --> B{怎麼開?}
+  B -->|選擇檔案| C[iPhone 選檔視窗]
+  B -->|貼上文字| P[貼上確認]
+  B -->|輸入網址| U[讀取網址]
+  B -->|最近開過| R[讀手機裡存的那份]
+  C -->|取消| A
+  C -->|選了 .md| D[讀檔]
+  C -->|選到不是文字的檔| E1[提示:這不是 Markdown 檔]:::warn
+  P -->|剪貼簿是空的| E2[提示:沒有可貼的內容]:::warn
+  U -->|對方網站不開放讀取| RISK1[讀不到網址]
+  U -->|成功| D
+  R --> F
+  D --> F[排版顯示 + 存進最近開過]
+  P -->|成功| F
+  F --> G{文件裡有連結到別篇?}
+  G -->|是| RISK2[無法直接跳到別篇]
+  G -->|否| H([閱讀])
+  E1 --> A
+  E2 --> A
+  RISK1 --> A
+  RISK2 --> H
+  classDef warn fill:#fef3c7,stroke:#d97706
+  class RISK1,RISK2 risk
+  </div>
+  <div class="mt-6 grid md:grid-cols-2 gap-4 text-sm">
+    <div class="rounded-xl bg-red-50 p-4"><b class="text-red-700">⚠ 風險:Google Drive 直接串接</b><p class="mt-1 text-gray-700">在 iPhone 主畫面 App 裡用 Google 登入,有「彈出視窗被擋」「一直轉圈不報錯」等回報,Google 官方文件也沒提行動裝置。<b>建議不做</b>,改走「Google Drive App → 選擇檔案」。</p></div>
+    <div class="rounded-xl bg-amber-50 p-4"><b class="text-amber-700">⚠ 需要實機確認</b><p class="mt-1 text-gray-700">① Google Drive 是否出現在選檔視窗 ② 大檔案、流程圖在 iPhone 上的速度 ③ iPad 拖檔進 App。研究時找不到權威資料,要做出來用手機試。</p></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="arch" class="card mt-8">
+  <h2 class="text-xl font-bold">5. 架構:同一個排版引擎,兩個外殼</h2>
+  <p class="text-sm text-gray-500 mt-1">現在的排版核心有 9 個程式檔,只有 4 個檔、共 19 處用到 Chrome 專用功能(存設定、存最近開過、載入流程圖元件)。做一個小轉接層換成手機能用的儲存方式,其餘原封不動。</p>
+  <div class="mermaid mt-4">
+flowchart LR
+  subgraph 共用[共用排版引擎 core/]
+    direction TB
+    R1[Markdown 轉換 + 消毒] --> R2[Obsidian 語法]
+    R2 --> R3[閱讀畫面外殼]
+    R3 --> R4[介面動畫 + 觸控]
+  end
+  subgraph 插件[Chrome 插件 現有]
+    X1[就地排版 / 閱讀頁] --- X2[chrome.storage]
+  end
+  subgraph 手機[iPhone 網頁 App 新]
+    M1[首頁:選檔・貼上・網址] --- M2[手機本機儲存 IndexedDB]
+    M3[離線快取 Service Worker]
+  end
+  共用 --> 插件
+  共用 --> 手機
+  T[轉接層:把 chrome.storage 換成手機儲存] -.-> 手機
+  style 共用 fill:#ede9fe,stroke:#7c5cff
+  style 手機 fill:#dcfce7,stroke:#16a34a
+  style 插件 fill:#e0f2fe,stroke:#0284c7
+  </div>
+  <div class="mermaid mt-6">
+flowchart TB
+  H[首頁] -->|選檔 / 貼上 / 網址| V[閱讀頁]
+  H --> L[最近開過]
+  L --> V
+  V --> S[底部面板:主題・字級・分享]
+  V --> T[目錄抽屜]
+  S --> ST[設定 存在手機]
+  L --> DB[(文件內容 存在手機)]
+  style DB fill:#fef9c3,stroke:#ca8a04
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="board" class="card mt-8">
+  <h2 class="text-xl font-bold">6. 功能排序(可以拖曳卡片)</h2>
+  <p class="text-sm text-gray-500 mt-1">把卡片拖到 P1(第一版一定要)/ P2(之後再做)/ P3(先不做),再按「匯出為指令」,把結果貼給 Claude 就能照著做。</p>
+  <div class="grid md:grid-cols-3 gap-4 mt-4">
+    <div><p class="font-semibold text-sm mb-2 text-violet-700">P1 第一版</p><div class="lane rounded-xl bg-violet-50 p-2 space-y-2" data-lane="P1">
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="選擇檔案開啟 .md">📂 選擇檔案開啟 .md</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="貼上文字">📋 貼上文字</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="最近開過(內容存在手機)">🕘 最近開過(內容存在手機)</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="加到主畫面 + 離線可用">📱 加到主畫面 + 離線可用</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="手機版工具列與底部面板">🎛️ 手機版工具列與底部面板</div>
+    </div></div>
+    <div><p class="font-semibold text-sm mb-2 text-sky-700">P2 之後</p><div class="lane rounded-xl bg-sky-50 p-2 space-y-2" data-lane="P2">
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="輸入網址開啟">🌐 輸入網址開啟</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="分享這份文件(傳給別的 App)">📤 分享這份文件(傳給別的 App)</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="字級、行寬調整">🔠 字級、行寬調整</div>
+    </div></div>
+    <div><p class="font-semibold text-sm mb-2 text-gray-500">P3 先不做</p><div class="lane rounded-xl bg-gray-100 p-2 space-y-2" data-lane="P3">
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="Google Drive 登入直接選檔">☁️ Google Drive 登入直接選檔</div>
+      <div class="kcard bg-white rounded-lg p-3 text-sm shadow-sm" data-id="包成原生 App(檔案 App 直接開)">📦 包成原生 App(檔案 App 直接開)</div>
+    </div></div>
+  </div>
+  <button class="ix mt-4 px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold flex items-center gap-1" id="export"><span class="icon">content_copy</span>匯出為指令</button>
+  <pre id="prompt" class="mt-3 hidden whitespace-pre-wrap text-sm bg-gray-900 text-gray-100 rounded-xl p-4"></pre>
+</section>
+
+<!-- 7 -->
+<section id="timeline" class="card mt-8">
+  <h2 class="text-xl font-bold">7. 時程(以 P1 估)</h2>
+  <div class="mermaid mt-4">
+gantt
+  dateFormat YYYY-MM-DD
+  axisFormat %m/%d
+  section 準備
+  你決定做法與放置網址 :milestone, m1, 2026-09-23, 0d
+  section 開發
+  排版引擎加轉接層         :a1, 2026-09-23, 1d
+  手機首頁與閱讀頁         :a2, after a1, 1d
+  離線、加到主畫面、觸控     :a3, after a2, 1d
+  section 驗收
+  自動化測試(模擬 iPhone) :a4, after a3, 1d
+  你用 iPhone 實機試       :crit, a5, after a4, 2d
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="decide" class="card mt-8">
+  <h2 class="text-xl font-bold flex items-center gap-2"><span class="icon">help</span>8. 請你決定(勾選會記在這台電腦)</h2>
+  <div class="mt-4 space-y-3 text-sm" id="checks">
+    <label class="flex gap-3 items-start"><input type="checkbox" class="mt-1 w-5 h-5 accent-violet-600" data-k="c1"><span><b>要不要做 iPhone 版?</b>建議:先做 A(網頁 App),接受「要先開 App 再選檔」這個限制</span></label>
+    <label class="flex gap-3 items-start"><input type="checkbox" class="mt-1 w-5 h-5 accent-violet-600" data-k="c2"><span><b>App 放在哪個網址?</b>網頁 App 一定要有一個 https 網址。建議 GitHub Pages(免費;只放程式,你的筆記不會上傳)。另一個選擇是 Vercel。要用你的 GitHub 帳號建一個公開的專案</span></label>
+    <label class="flex gap-3 items-start"><input type="checkbox" class="mt-1 w-5 h-5 accent-violet-600" data-k="c3"><span><b>放在同一個專案,還是另開一個?</b>建議同一個專案(排版引擎只有一份,桌機、手機一起更新)</span></label>
+    <label class="flex gap-3 items-start"><input type="checkbox" class="mt-1 w-5 h-5 accent-violet-600" data-k="c4"><span><b>Google Drive 先走「Google Drive App → 選擇檔案」</b>,不做登入串接</span></label>
+    <label class="flex gap-3 items-start"><input type="checkbox" class="mt-1 w-5 h-5 accent-violet-600" data-k="c5"><span><b>確認第 6 節的 P1 範圍</b>(拖好後按「匯出為指令」)</span></label>
+  </div>
+</section>
+
+<section class="mt-8 text-xs text-gray-500 space-y-1">
+  <p class="font-semibold">主要來源</p>
+  <p><a class="underline" href="https://webkit.org/blog/17333/webkit-features-in-safari-26-0/">WebKit:Safari 26.0 新功能</a> · <a class="underline" href="https://webkit.org/blog/18325/webkit-features-for-safari-27-0/">WebKit:Safari 27.0 新功能</a> · <a class="underline" href="https://webkit.org/blog/14403/updates-to-storage-policy/">WebKit:儲存政策</a> · <a class="underline" href="https://github.com/mdn/browser-compat-data">MDN 瀏覽器相容性資料</a> · <a class="underline" href="https://caniuse.com/native-filesystem-api">caniuse:檔案系統存取</a> · <a class="underline" href="https://github.com/JHProyectos/mdreader-pwa">mdreader-pwa(同類開源專案)</a> · <a class="underline" href="https://developer.apple.com/documentation/safariservices/safari_web_extensions/converting_a_web_extension_for_safari">Apple:把擴充功能轉成 Safari 版</a></p>
+  <p>研究日期 2026-09-22;iOS 27 已於 2026-09-17 發布,相關限制沒有改變。</p>
+</section>
+</div>
+
+<script>
+  // ---- 畫面模擬 ----
+  const $ = (id) => document.getElementById(id);
+  const show = (id) => { for (const v of ['v-home', 'v-read']) $(v).hidden = v !== id; };
+  document.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => show('v-read'));
+  $('back').onclick = () => show('v-home');
+  const sheet = (open) => { $('sheet').classList.toggle('open', open); $('scrim').classList.toggle('open', open); };
+  $('more').onclick = () => sheet(true);
+  $('scrim').onclick = () => sheet(false);
+  document.querySelectorAll('[data-theme]').forEach((b) => b.onclick = () => { $('screen').classList.toggle('dark', b.dataset.theme === 'dark'); sheet(false); });
+  $('share').onclick = () => { sheet(false); const t = $('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1400); };
+
+  // ---- 待確認勾選(記在這台電腦)----
+  document.querySelectorAll('#checks input').forEach((c) => {
+    try { c.checked = localStorage.getItem('pwa-plan-' + c.dataset.k) === '1'; } catch {}
+    c.onchange = () => { try { localStorage.setItem('pwa-plan-' + c.dataset.k, c.checked ? '1' : '0'); } catch {} };
+  });
+
+  // ---- 看板 ----
+  document.querySelectorAll('.lane').forEach((lane) => new Sortable(lane, { group: 'board', animation: 180, easing: 'cubic-bezier(0.2, 0, 0, 1)' }));
+  $('export').onclick = async () => {
+    const lanes = {};
+    document.querySelectorAll('.lane').forEach((l) => { lanes[l.dataset.lane] = [...l.querySelectorAll('.kcard')].map((c) => c.dataset.id); });
+    const text = `請照 docs/plans/v2.0.0-pwa-plan.html 開始做 MD隨手讀 的 iPhone 網頁 App(PWA),沿用 extension/core/ 的排版引擎。\n\n第一版(P1)要做:\n${lanes.P1.map((x) => '- ' + x).join('\n') || '- (無)'}\n\n之後再做(P2):\n${lanes.P2.map((x) => '- ' + x).join('\n') || '- (無)'}\n\n先不做(P3):\n${lanes.P3.map((x) => '- ' + x).join('\n') || '- (無)'}`;
+    $('prompt').textContent = text;
+    $('prompt').classList.remove('hidden');
+    try { await navigator.clipboard.writeText(text); $('export').lastChild.textContent = '已複製到剪貼簿'; } catch {}
+  };
+
+  // ---- 流程圖 + 風險提示 ----
+  const RISK_TIPS = {
+    RISK1: 'GitHub 原始檔網址可以讀;其他網站如果沒開放「跨網站讀取」,手機網頁 App 讀不到,會提示改用下載後選檔。',
+    RISK2: 'iPhone 網頁 App 一次只能挑一個檔,碰不到同資料夾的其他筆記,所以雙中括號連結無法直接開到別篇(會顯示成可辨識的連結樣式)。要解決只能做原生 App(做法 B)。',
+  };
+  mermaid.initialize({ startOnLoad: false, theme: 'default', gantt: { useWidth: 960 }, flowchart: { htmlLabels: true } });
+  mermaid.run({ querySelector: '.mermaid' }).then(() => {
+    document.querySelectorAll('#flowchart g.node.risk').forEach((n) => {
+      const key = Object.keys(RISK_TIPS).find((k) => n.id.includes(k));
+      if (key) tippy(n, { content: RISK_TIPS[key], maxWidth: 280 });
+    });
+  });
+</script>
+</body>
+</html>

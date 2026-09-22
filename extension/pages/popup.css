@@ -41,10 +41,10 @@ html[data-mdr-theme="dark"] .pp-warn { background: #3a2a12; color: #f5c27a; }
   resize: vertical;
   transition: border-color var(--mdr-med) var(--mdr-ease), box-shadow var(--mdr-med) var(--mdr-ease);
 }
-.pp-paste textarea:hover { border-color: color-mix(in srgb, var(--mdr-accent) 40%, var(--mdr-line)); }
+@media (hover: hover) { .pp-paste textarea:hover { border-color: color-mix(in srgb, var(--mdr-accent) 40%, var(--mdr-line)); } }
 .pp-paste textarea:focus { outline: none; border-color: var(--mdr-accent); box-shadow: var(--mdr-ring); }
 .pp-go { margin-left: auto; }
-#paste-go:not(:disabled):hover .pp-go { transform: translateX(4px); }
+@media (hover: hover) { #paste-go:not(:disabled):hover .pp-go { transform: translateX(4px); } }
 
 /* 最近開過 */
 .pp-label { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--mdr-faint); font-size: 12px; font-weight: 600; }
@@ -69,21 +69,30 @@ html[data-mdr-theme="dark"] .pp-warn { background: #3a2a12; color: #f5c27a; }
   text-align: left;
   cursor: pointer;
 }
-.pp-recent li button:hover { background: var(--mdr-hover); }
+@media (hover: hover) { .pp-recent li button:hover { background: var(--mdr-hover); } }
 .pp-recent .pp-kind { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; background: var(--mdr-bg-2); color: var(--mdr-muted); transition: background-color var(--mdr-med) var(--mdr-ease), color var(--mdr-med) var(--mdr-ease); }
 .pp-recent .pp-kind .mdr-icon { --mdr-icon-size: 18px; }
-.pp-recent li button:hover .pp-kind { background: var(--mdr-accent); color: #fff; }
+@media (hover: hover) { .pp-recent li button:hover .pp-kind { background: var(--mdr-accent); color: #fff; } }
 .pp-recent .pp-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .pp-recent .pp-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pp-recent .pp-meta { color: var(--mdr-faint); font-size: 11.5px; }
 .pp-recent .pp-arrow { color: var(--mdr-accent); opacity: 0; transform: translateX(-6px); }
-.pp-recent li button:hover .pp-arrow,
 .pp-recent li button:focus-visible .pp-arrow { opacity: 1; transform: none; }
+@media (hover: hover) { .pp-recent li button:hover .pp-arrow { opacity: 1; transform: none; } }
 .pp-empty { margin: 4px 8px; color: var(--mdr-faint); }
 
 /* 底部 */
 .pp-foot { display: flex; justify-content: space-between; gap: 4px; padding-top: 10px; border-top: 1px solid var(--mdr-line); }
 .pp-foot .mdr-btn-text { padding: 6px 8px; font-size: 13px; }
 .pp-foot .mdr-icon { --mdr-icon-size: 18px; }
-#open-settings:hover .mdr-icon { transform: rotate(60deg); }
+@media (hover: hover) { #open-settings:hover .mdr-icon { transform: rotate(60deg); } }
 .mdr-btn-text.has-update::after { content: "新版本"; margin-left: 2px; padding: 1px 6px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 10.5px; font-weight: 700; animation: mdr-pop 420ms var(--mdr-ease-spring) 200ms both; }
+
+/* 觸控:按下時底色加深,箭頭常駐 */
+@media (hover: none) {
+  .pp-recent li button:active { background: var(--mdr-press); }
+  .pp-recent .pp-arrow { opacity: 0.45; transform: none; }
+}
+@media (pointer: coarse) {
+  .pp-recent li button { min-height: 52px; }
+}

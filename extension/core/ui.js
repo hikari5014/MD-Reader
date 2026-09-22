@@ -1,4 +1,4 @@
-// 介面小工具:Material 圖示元素、按下時的水波紋、分段按鈕的滑動色塊、載入與過場
+// 介面小工具:Material 圖示元素、按下時的水波紋、分段按鈕的滑動色塊、載入與過場、觸控
 // 閱讀畫面(注入網頁)與所有插件頁面共用;樣式在 styles/ui.css
 (() => {
   // <span class="mdr-icon" data-icon="settings" aria-hidden="true"></span>
@@ -35,6 +35,7 @@
       };
       host.addEventListener('pointerup', leave, { once: true });
       host.addEventListener('pointerleave', leave, { once: true });
+      host.addEventListener('pointercancel', leave, { once: true }); // 手指一滑變成捲動時,瀏覽器會取消這次按下
     });
   }
 
@@ -133,5 +134,76 @@
     el.classList.add('mdr-fade-in');
   }
 
-  globalThis.MDR = Object.assign(globalThis.MDR || {}, { icon, enableRipple, moveSegThumb, spinner, withLoader, pageLoader, swap });
+  // ---------- 觸控 ----------
+  // 長按(手指):有 data-tip 的按鈕按住 0.5 秒 → 顯示說明泡泡 1.5 秒;移動超過 8px 算捲動、取消;長按後放手不觸發按鈕
+  function enableTouch(root) {
+    root.addEventListener('touchstart', () => {}, { passive: true }); // iOS / iPadOS 要有 touchstart 監聽,:active 才會生效
+    root.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      const host = e.target.closest?.('[data-tip]');
+      if (!host) return;
+      const start = { x: e.clientX, y: e.clientY };
+      host.classList.add('is-long-pressing');
+      const timer = setTimeout(() => {
+        host.classList.remove('is-long-pressing');
+        host.classList.add('is-tip-shown');
+        navigator.vibrate?.(10);
+        // 吞掉「這次放手」的 click;沒有 click 也會在放手後解除,不會吃到下一次
+        const stop = (c) => { c.preventDefault(); c.stopImmediatePropagation(); };
+        host.addEventListener('click', stop, { capture: true, once: true });
+        globalThis.addEventListener('pointerup', () => setTimeout(() => host.removeEventListener('click', stop, { capture: true }), 0), { once: true });
+        setTimeout(() => host.classList.remove('is-tip-shown'), 1500);
+      }, 500);
+      const cancel = () => {
+        clearTimeout(timer);
+        host.classList.remove('is-long-pressing');
+        root.removeEventListener('pointermove', onMove);
+      };
+      const onMove = (m) => { if (Math.hypot(m.clientX - start.x, m.clientY - start.y) > 8) cancel(); };
+      root.addEventListener('pointermove', onMove);
+      host.addEventListener('pointerup', cancel, { once: true });
+      host.addEventListener('pointercancel', cancel, { once: true });
+    });
+  }
+
+  // 往左拖關閉的抽屜:跟著手指走(拖曳中不要轉場),放手時拖超過 1/3 寬度或甩一下就呼叫 onClose,否則彈回
+  function swipeToClose(panel, onClose, enabled = () => true) {
+    panel.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || !enabled()) return;
+      const start = { x: e.clientX, y: e.clientY };
+      let dragging = false;
+      let last = { x: e.clientX, t: e.timeStamp };
+      let velocity = 0;
+      const move = (m) => {
+        const dx = m.clientX - start.x;
+        if (!dragging) {
+          if (Math.hypot(dx, m.clientY - start.y) < 8) return;
+          if (Math.abs(m.clientY - start.y) > Math.abs(dx) || dx > 0) return end(); // 上下捲目錄、往右拖:不處理
+          dragging = true;
+          panel.classList.add('is-dragging');
+        }
+        velocity = (m.clientX - last.x) / Math.max(1, m.timeStamp - last.t);
+        last = { x: m.clientX, t: m.timeStamp };
+        panel.style.setProperty('--mdr-toc-dx', `${Math.min(0, dx)}px`);
+      };
+      const end = () => {
+        panel.removeEventListener('pointermove', move);
+        panel.removeEventListener('pointerup', end);
+        panel.removeEventListener('pointercancel', end);
+        if (!dragging) return;
+        panel.classList.remove('is-dragging');
+        const dx = parseFloat(panel.style.getPropertyValue('--mdr-toc-dx')) || 0;
+        panel.style.removeProperty('--mdr-toc-dx');
+        if (-dx > panel.offsetWidth / 3 || velocity < -0.5) onClose();
+        const stop = (c) => { c.preventDefault(); c.stopImmediatePropagation(); };
+        panel.addEventListener('click', stop, { capture: true, once: true }); // 拖完放手不要點到目錄連結
+        setTimeout(() => panel.removeEventListener('click', stop, { capture: true }), 0);
+      };
+      panel.addEventListener('pointermove', move);
+      panel.addEventListener('pointerup', end);
+      panel.addEventListener('pointercancel', end);
+    });
+  }
+
+  globalThis.MDR = Object.assign(globalThis.MDR || {}, { icon, enableRipple, moveSegThumb, spinner, withLoader, pageLoader, swap, enableTouch, swipeToClose });
 })();

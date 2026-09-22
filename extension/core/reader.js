@@ -84,7 +84,11 @@
         else shell.dataset.toc = shell.dataset.toc === 'open' ? 'closed' : 'open'; // 窄螢幕:只開這一次
       }
     });
-    if (toc) watchScroll(doc, article, toc);
+    if (toc) {
+      watchScroll(doc, article, toc);
+      // 窄螢幕的浮動目錄:手指往左拖關閉(寬螢幕的常駐目錄不處理)
+      MDR.swipeToClose(toc, () => { shell.dataset.toc = 'closed'; }, () => !wide.matches);
+    }
     watchProgress(doc, progress.firstChild);
   }
 
@@ -128,6 +132,7 @@
       bar.append(b);
     }
     MDR.enableRipple(bar);
+    MDR.enableTouch(bar); // 觸控:長按按鈕看說明
     bar.addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b) return;

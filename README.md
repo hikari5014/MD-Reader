@@ -2,14 +2,14 @@
 
 Chrome 插件:.md 檔不管來自**電腦本機、網路網址、下載、Google Drive**,打開就是排版好的 Obsidian 風閱讀畫面;看得懂 Obsidian 的屬性表、雙中括號連結、提示框、流程圖、數學公式。只讀、自用、不上架。
 
-目前版本:**v1.2.0**(載入與過場動畫)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
+目前版本:**v1.3.0**(觸控互動)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
 
 ## 安裝(載入未封裝)
 
 1. Chrome 網址列輸入 `chrome://extensions`
 2. 右上角打開 **開發人員模式**
 3. 按 **載入未封裝項目**,選這個專案裡的 `extension/` 資料夾
-   (別台電腦:解壓 `dist/md-suishoudu-v1.2.0.zip`,選解壓出來的資料夾)
+   (別台電腦:解壓 `dist/md-suishoudu-v1.3.0.zip`,選解壓出來的資料夾)
 4. 在「MD隨手讀」的 **詳細資料** 裡打開 **允許存取檔案網址**(看本機 .md 需要)
 5. 建議:設定頁「閱讀」→「Obsidian 保險庫名稱」填 `LLM Wiki`,筆記裡的連結就能直接開 Obsidian
 

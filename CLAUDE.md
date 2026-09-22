@@ -30,6 +30,7 @@ Chrome 全方位 Markdown 閱讀插件(Manifest V3)。PM 決策、版本規劃�
   - 可按的元素加 `.mdr-ix`(滑過、按下、焦點光暈),並在容器呼叫 `MDR.enableRipple()`;按鈕樣式用 `.mdr-btn-primary` / `.mdr-btn` / `.mdr-btn-text` / `.mdr-icon-btn`,開關 `.mdr-switch`,分段 `.mdr-seg`(改選中後呼叫 `MDR.moveSegThumb`)。
   - 動畫時間用 `--mdr-fast/med/slow`、曲線用 `--mdr-ease` / `--mdr-ease-spring`;提示泡泡用 `data-tip`(佔用 `::after`),其他裝飾用 `::before`。
   - **載入與過場**(v1.2):等待一律包 `MDR.withLoader(工作, 顯示, 隱藏)`(0.3 秒後才顯示、至少停 0.5 秒);轉圈 `MDR.spinner(大小)`、開檔過場 `MDR.pageLoader`(掛在 `<html>`,因為 `mount` 會換掉 body)、內容切換 `MDR.swap`;新的循環動畫要加進 ui.css 結尾「減少動態效果」的例外(改呼吸、不停止)。
+  - **觸控**(v1.3):`:hover` 規則一律包在 `@media (hover: hover)`(否則觸控螢幕上點完會黏住);觸控回饋寫在 `@media (hover: none)`(按下 `:active`)、尺寸寫在 `@media (pointer: coarse)`(至少 48px);長按說明 `MDR.enableTouch`、抽屜拖曳 `MDR.swipeToClose`;可拖的元素要設 `touch-action`。
 - 標籤規則照 Obsidian:`#` 前面必須是空白或行首(緊貼標點不算)。
 - Chrome 最低版本 128(網路規則的 `responseHeaders` 條件)。
 
