@@ -4,14 +4,14 @@ Chrome 插件 + iPhone 網頁 App:.md 檔不管來自**電腦本機、網路網�
 
 📱 **手機版**:<https://hikari5014.github.io/MD-Reader/pwa/>(iPhone 用 Safari 打開 → 分享 →「加入主畫面」)
 
-目前版本:**v2.0.0**(iPhone 網頁 App)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
+目前版本:**v2.1.0**(手機版分享 / 匯出五種格式)。發布總覽:`docs/plans/v1.0.0-plan.html`;使用說明:`docs/guide/GUIDE.md`(插件設定頁也看得到)。
 
 ## 安裝(載入未封裝)
 
 1. Chrome 網址列輸入 `chrome://extensions`
 2. 右上角打開 **開發人員模式**
 3. 按 **載入未封裝項目**,選這個專案裡的 `extension/` 資料夾
-   (別台電腦:解壓 `dist/md-suishoudu-v2.0.0.zip`,選解壓出來的資料夾)
+   (別台電腦:解壓 `dist/md-suishoudu-v2.1.0.zip`,選解壓出來的資料夾)
 4. 在「MD隨手讀」的 **詳細資料** 裡打開 **允許存取檔案網址**(看本機 .md 需要)
 5. 建議:設定頁「閱讀」→「Obsidian 保險庫名稱」填 `LLM Wiki`,筆記裡的連結就能直接開 Obsidian
 
@@ -38,7 +38,7 @@ Chrome 插件 + iPhone 網頁 App:.md 檔不管來自**電腦本機、網路網�
 | 🌐 輸入網址 | GitHub / GitLab 檔案頁自動換成原始檔 |
 | ☁️ Google Drive | 登入後列出雲端硬碟的 .md(要先申請用戶端 ID,見 `docs/guide/PWA-GOOGLE-DRIVE.md`) |
 
-閱讀畫面與插件相同(同一個排版引擎);底部面板調字級、行寬、主題,分享成 .md 檔。開過的文件連內容存在手機,加到主畫面後沒網路也能看。
+閱讀畫面與插件相同(同一個排版引擎);底部面板調字級、行寬、主題;**分享 / 匯出**支援 Markdown、整頁 PNG、PDF(列印)、Word(.doc)、Google 文件。開過的文件連內容存在手機,加到主畫面後沒網路也能看。
 **限制(iPhone 的規定)**:不能從「檔案」App 點 .md 直接用它打開、不會出現在分享選單、不能開整個資料夾。評估見 `docs/plans/v2.0.0-pwa-plan.html`。
 
 ## 專案結構
@@ -61,7 +61,7 @@ pwa/              iPhone 網頁 App(直接用 extension/core 的排版引擎,不
   platform.js     轉接層:用手機瀏覽器的儲存方式替代 chrome.storage / chrome.runtime
   index.html      首頁(home.js):選檔、貼上、網址、Google Drive(drive.js)、最近開過
   read.html       閱讀頁(read.js):返回鍵、閱讀設定底部面板、分享
-  shell.js        共用:文件庫、底部面板、提示條、分享;config.js Google 用戶端 ID
+  shell.js        共用:文件庫、底部面板、提示條;export.js 分享 / 匯出五種格式;config.js Google 用戶端 ID
   sw.js           離線快取;manifest.webmanifest、icons/ 加到主畫面用
 .github/workflows/pages.yml  推上 GitHub 後自動發布手機版到 GitHub Pages
 docs/             plans 計劃書・changelog 更新日誌・verification 驗收清單・progress 進度・guide 使用說明
@@ -78,7 +78,7 @@ npm run sync         # 第三方元件 → extension/vendor/;CHANGELOG、GUIDE �
 npm run icons        # 重新產生插件圖示(PNG)
 npm run icons:font   # 重新下載 Material Symbols 圖示字型(新增介面圖示時,先把名稱加進 scripts/fetch-icons.mjs)
 npm test             # 插件自動化測試(Chrome for Testing 載入插件跑 89 項,其中 2 項需連網)
-npm run test:pwa     # 手機版自動化測試(Chromium 模擬 iPhone 13,22 項)
+npm run test:pwa     # 手機版自動化測試(Chromium 模擬 iPhone 13,28 項)
 npm run test:vault   # 真實筆記驗收(預設 ~/Obsidian/LLM Wiki/wiki 挑 20 篇;MDR_VAULT、MDR_VAULT_COUNT 可調)
 npm run release      # 發布:打包 dist/md-suishoudu-v{版本}.zip + 建 git 版本標記(先 commit)
 git push             # 推上 GitHub → 自動發布手機版(約 1 分鐘)

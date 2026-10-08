@@ -20,6 +20,7 @@ const libs = [
   { pkg: 'js-yaml', file: 'dist/js-yaml.min.js', out: 'js-yaml.min.js', license: 'MIT' },
   { pkg: 'katex', file: 'dist/katex.min.js', out: 'katex/katex.min.js', license: 'MIT' },
   { pkg: 'mermaid', file: 'dist/mermaid.min.js', out: 'mermaid.min.js', license: 'MIT' },
+  { pkg: 'html-to-image', file: 'dist/html-to-image.js', out: 'html-to-image.js', license: 'MIT' }, // 手機版「匯出整頁圖片」用,用到才載入
 ];
 
 rmSync(join(vendor, 'katex'), { recursive: true, force: true });

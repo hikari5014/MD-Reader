@@ -12,4 +12,5 @@
 | js-yaml.min.js | js-yaml | 4.3.2 | MIT |
 | katex/katex.min.js | katex | 0.18.7 | MIT |
 | mermaid.min.js | mermaid | 11.17.2 | MIT |
+| html-to-image.js | html-to-image | 1.11.13 | MIT |
 | katex/katex.min.css + fonts/*.woff2 | katex | 0.18.7 | MIT |

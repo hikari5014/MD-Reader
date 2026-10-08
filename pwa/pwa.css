@@ -259,3 +259,12 @@ html[data-mdr] .pwa-back {
   html[data-pwa="read"] .mdr-toc { padding-top: calc(72px + env(safe-area-inset-top)); }
 }
 html[data-mdr] .mdr-error .mdr-btn-primary { display: inline-flex; text-decoration: none; }
+
+/* 列印 / 存成 PDF:只留文件內容 */
+@media print {
+  html[data-mdr] .pwa-back,
+  html[data-mdr] .pwa-sheet,
+  html[data-mdr] .pwa-scrim,
+  html[data-mdr] .pwa-toast { display: none !important; }
+  html[data-pwa="read"] .mdr-page { padding: 0 !important; }
+}

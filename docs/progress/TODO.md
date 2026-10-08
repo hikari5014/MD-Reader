@@ -1,6 +1,7 @@
 # TODO
 
 ## 🔥 進行中
+- [ ] **v2.1.0 分享 / 匯出驗收**(等 PM):`docs/verification/v2.1.0-checklist.md`(五種格式;Google 文件要先重新登入拿新權限)
 - [ ] **v1.3.0 觸控驗收**(等 PM):`docs/verification/v1.3.0-checklist.md`(需要觸控螢幕,或用開發者工具模擬)
 - [ ] **v2.0.0 iPhone 實機驗收**(等 PM):`docs/verification/v2.0.0-checklist.md`(加到主畫面、選檔、離線、分享)
 - [ ] **Google Drive 用戶端 ID**(等 PM 申請):照 `docs/guide/PWA-GOOGLE-DRIVE.md` 申請後貼給 Claude,填進 `pwa/config.js` 並發布
@@ -14,6 +15,7 @@
 - 知識庫整理(非插件工作):修正屬性格式不標準的筆記,清單見 v1.0.0 驗收清單第 6 節
 
 ## ✅ 已完成
+- [x] v2.1.0 手機版分享 / 匯出五種格式(Markdown、PNG 長圖、PDF、Word、Google 文件);修好桌面 Chrome 的「分享失敗 Permission denied」;手機版自動化 28/28(2026-10-08)
 - [x] v2.0.0 iPhone 網頁 App(PWA):選檔、貼上、網址、Google Drive 登入、最近開過(存在手機)、閱讀設定底部面板、分享、離線、GitHub Pages 自動發布;手機版自動化 22/22、插件 89/89(2026-09-22)
 - [x] v1.3.0 觸控互動:點完不黏住滑過狀態、按下回饋、48px 觸控目標、長按看說明、目錄抽屜往左拖關閉;自動化測試 89/89(2026-09-22)
 - [x] v1.2.0 載入與過場動畫:開檔過場(0.3 秒後才出現、至少停 0.5 秒)、流程圖佔位轉圈、排版/原始碼淡出淡入、減少動態效果時改呼吸;自動化測試 85/85(2026-09-22)

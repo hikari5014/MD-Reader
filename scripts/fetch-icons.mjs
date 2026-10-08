@@ -18,7 +18,7 @@ export const ICONS = [
   // 設定頁
   'palette', 'download', 'lock', 'restart_alt', 'notifications', 'block', 'open_in_new', 'delete', 'error',
   // iPhone 網頁 App(pwa/)
-  'arrow_back', 'ios_share', 'search', 'format_size', 'tune', 'add_to_home_screen', 'logout', 'folder', 'text_increase', 'text_decrease', 'wifi_off', 'login', 'progress_activity',
+  'arrow_back', 'ios_share', 'search', 'format_size', 'tune', 'add_to_home_screen', 'logout', 'folder', 'text_increase', 'text_decrease', 'wifi_off', 'image', 'picture_as_pdf', 'edit_document', 'add_to_drive', 'login', 'progress_activity',
 ];
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');

@@ -1,4 +1,4 @@
-// 手機版外殼共用:文件庫(最近開過)、底部面板、提示條、分享、離線
+// 手機版外殼共用:文件庫(最近開過)、底部面板、提示條、離線(分享 / 匯出在 export.js)
 (() => {
   const MAX_DOCS = 30;
 
@@ -112,22 +112,6 @@
     return api;
   }
 
-  // ---------- 分享這份文件:優先分享成 .md 檔,不支援就分享文字,再不行就複製 ----------
-  async function shareDoc(doc) {
-    const name = /\.(md|markdown)$/i.test(doc.name) ? doc.name : `${doc.name}.md`;
-    const file = new File([doc.text], name, { type: 'text/markdown' });
-    try {
-      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: doc.name });
-      else if (navigator.share) await navigator.share({ title: doc.name, text: doc.text });
-      else {
-        await navigator.clipboard.writeText(doc.text);
-        toast('這個瀏覽器不能分享,已改成複製全文');
-      }
-    } catch (e) {
-      if (e.name !== 'AbortError') toast(`分享失敗:${e.message}`, 'error'); // AbortError = 使用者自己取消
-    }
-  }
-
   // ---------- 分段按鈕(設定面板用)----------
   function segment(group, value, onPick) {
     group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === String(value))));
@@ -146,5 +130,5 @@
     navigator.serviceWorker.register('sw.js').catch(() => { /* 不影響使用,只是不能離線 */ });
   }
 
-  globalThis.PWA = { listDocs, saveDoc, removeDoc, clearDocs, readUrl, looksLikeText, toast, sheet, shareDoc, segment };
+  globalThis.PWA = { listDocs, saveDoc, removeDoc, clearDocs, readUrl, looksLikeText, toast, sheet, segment };
 })();

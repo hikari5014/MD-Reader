@@ -1,5 +1,32 @@
 # 更新日誌
 
+## v2.1.0 — 手機版:分享 / 匯出五種格式(2026-10-08)
+
+**白話說明**:修好「分享失敗」,並把分享改成一個選單,可以選五種格式:Markdown 原始碼、整頁圖片、PDF、Word、存成 Google 文件。在電腦上(或手機擋下分享時)會自動改成直接下載,不會再跳錯誤。
+
+### 新增
+- **分享 / 匯出選單**(閱讀畫面齒輪 →「分享 / 匯出」):
+  - **Markdown 原始碼(.md)**:原汁原味的文字檔
+  - **整頁圖片(.png)**:整篇排版好的長圖(用到時才下載截圖元件,約 20KB)
+  - **PDF**:開啟列印畫面選「儲存為 PDF」,文字可複製、會自動分頁;列印時不會印出返回鍵與工具列
+  - **Word 文件(.doc)**:Word、Pages 都打得開;提示框變成引言區塊、數學公式還原成 `$LaTeX$`、介面裝飾不會帶進文件
+  - **存成 Google 文件**:上傳到你的雲端硬碟並轉成 Google 文件,完成後給一個「打開 Google 文件」按鈕
+- 手機會跳出分享選單(可存到「檔案」、傳給別的 App);電腦則直接下載
+
+### 修正
+- **分享失敗:Permission denied**(桌面版 Chrome 分享檔案常被擋下)→ 改成自動下載並告知;使用者自己按取消則安靜返回,不會跳錯誤
+- 匯出的整頁圖片裡,提示框圖示變成「ec」「lo」這類英文字 → 截圖時把圖示字型親手嵌進圖片
+
+### 影響範圍
+- 只有手機版的閱讀畫面;電腦版插件不變(多了一個第三方元件 html-to-image,插件本身沒用到)
+
+### 技術細節
+- 新增 `pwa/export.js`;`shareOrDownload` 先試 `navigator.share`,`NotAllowedError` → 下載,`AbortError` → 安靜返回
+- Word / Google 文件走同一份「乾淨 HTML」:提示框 → `blockquote`、KaTeX → 原始 LaTeX、流程圖 → 說明文字、移除 class 與介面裝飾
+- Google 文件用 Drive 的 multipart 上傳 + `mimeType: application/vnd.google-apps.document`;權限範圍多了 `drive.file`(**既有登入要重新登入一次**)
+- 截圖用 html-to-image(瀏覽器自己渲染,支援 color-mix 等新式 CSS);`fontEmbedCSS` 自行附上圖示字型的 data URL,蓋過 ui.css 裡指向插件網址的同名字型
+- 手機版自動化測試 28 項(新增 6 項:五種格式、分享被擋改下載、使用者取消)
+
 ## v2.0.0 — iPhone 網頁 App(2026-09-22)
 
 **白話說明**:MD隨手讀 有手機版了。用 iPhone 的 Safari 打開 https://hikari5014.github.io/MD-Reader/pwa/ ,加到主畫面後就像一個 App:可以從「檔案」App / iCloud Drive 選 .md、貼上文字、輸入網址,或登入 Google Drive 挑檔;排版跟電腦版一模一樣(Obsidian 提示框、屬性表、流程圖、公式都看得懂)。開過的文件存在手機裡,沒網路也能重看。檔案只在手機裡讀,不會上傳。

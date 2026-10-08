@@ -251,21 +251,134 @@ await check('4 閱讀頁', '工具列齒輪 → 閱讀設定面板;字級 +2、�
   assert(open && before === '16px' && after.size === '18px' && after.width === 'none' && after.theme === 'dark' && after.label === '18px' && kept[0] === '18px' && kept[1] === 'dark', JSON.stringify({ open, before, after, kept }));
   return `字級 ${before} → ${after.size}、滿版、深色;重新整理後保留`;
 });
-await check('4 閱讀頁', '分享這份文件:分享成 .md 檔', async () => {
+await check('4 閱讀頁', '分享 / 匯出:五種格式都在,Markdown 走手機分享選單', async () => {
   const page = await home();
   await pickFile(page, 'obsidian-note.md');
   await page.evaluate(() => {
     navigator.canShare = () => true;
-    navigator.share = async (data) => { window.__shared = { name: data.files?.[0]?.name, type: data.files?.[0]?.type, size: data.files?.[0]?.size }; };
+    navigator.share = async (data) => { window.__shared = { name: data.files?.[0]?.name, type: data.files?.[0]?.type, text: await data.files?.[0]?.text() }; };
   });
   await page.tap('.mdr-toolbar [data-action="settings"]');
   await sleep(450);
   await page.tap('#rs-share');
-  await sleep(200);
+  await sleep(450);
+  const items = await page.$$eval('#export-list .pwa-row-text > span', (n) => n.map((x) => x.textContent));
+  await page.screenshot({ path: join(OUTPUT, 'pwa-export.png') });
+  await page.tap('#export-list li:first-child button');
+  await sleep(400);
   const shared = await page.evaluate(() => window.__shared);
   await page.close();
-  assert(shared?.name === 'obsidian-note.md' && shared.type === 'text/markdown' && shared.size > 100, JSON.stringify(shared));
-  return `${shared.name}(${shared.size} bytes)`;
+  assert(items.join() === 'Markdown 原始碼,整頁圖片,PDF,Word 文件,存成 Google 文件'
+    && shared?.name === 'obsidian-note.md' && shared.type === 'text/markdown' && shared.text.startsWith('---'), JSON.stringify({ items, shared: { ...shared, text: shared?.text?.slice(0, 20) } }));
+  return items.join('、');
+});
+await check('4 閱讀頁', '分享被瀏覽器擋下(桌機 Chrome 的 Permission denied)→ 自動改成下載', async () => {
+  const page = await home();
+  await pickFile(page, 'obsidian-note.md');
+  await page.evaluate(() => {
+    navigator.canShare = () => true;
+    navigator.share = async () => { throw Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' }); };
+  });
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  const dl = page.waitForEvent('download', { timeout: 8000 });
+  await page.tap('#export-list li:first-child button');
+  const file = await dl;
+  const toast = await page.textContent('.pwa-toast');
+  await page.close();
+  assert(file.suggestedFilename() === 'obsidian-note.md' && toast.includes('已下載'), JSON.stringify({ name: file.suggestedFilename(), toast }));
+  return `改成下載 ${file.suggestedFilename()}`;
+});
+await check('4 閱讀頁', '使用者在分享選單按取消:不當成錯誤、不重複下載', async () => {
+  const page = await home();
+  await pickFile(page, 'sample-zh.md');
+  await page.evaluate(() => {
+    navigator.canShare = () => true;
+    navigator.share = async () => { throw Object.assign(new Error('Share canceled'), { name: 'AbortError' }); };
+    window.__downloads = 0;
+    const click = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function patched() { if (this.download) window.__downloads++; else click.call(this); };
+  });
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  await page.tap('#export-list li:first-child button');
+  await sleep(400);
+  const r = await page.evaluate(() => ({ downloads: window.__downloads, toast: document.querySelector('.pwa-toast.is-show')?.textContent || '', open: document.getElementById('export-sheet').classList.contains('is-open') }));
+  await page.close();
+  assert(r.downloads === 0 && !r.toast && r.open, JSON.stringify(r));
+  return '靜靜回到匯出選單';
+});
+await check('4 閱讀頁', '匯出整頁圖片:產生整篇的 PNG', async () => {
+  const page = await home();
+  await pickFile(page, 'obsidian-note.md');
+  await page.evaluate(() => { navigator.canShare = () => false; delete navigator.share; });
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  const dl = page.waitForEvent('download', { timeout: 30000 });
+  await page.tap('#export-list li:nth-child(2) button');
+  const file = await dl;
+  const path = join(OUTPUT, 'pwa-export.png.download');
+  await file.saveAs(path);
+  const bytes = readFileSync(path);
+  const iconCss = await page.evaluate(() => PWA_EXPORT.iconFontFace()); // 圖示字型要親手嵌進去才不會變成英文字
+  await page.close();
+  // PNG 檔頭 + 檔案夠大(真的畫了東西)
+  assert(file.suggestedFilename() === 'obsidian-note.png' && bytes.subarray(1, 4).toString() === 'PNG' && bytes.length > 20000, `${file.suggestedFilename()} ${bytes.length} bytes`);
+  assert(iconCss.startsWith('@font-face') && iconCss.includes('data:font/woff2;base64,') && iconCss.length > 50000, '圖示字型沒有嵌進圖片,提示框圖示會變成英文字');
+  return `${file.suggestedFilename()},${Math.round(bytes.length / 1024)} KB`;
+});
+await check('4 閱讀頁', '匯出 Word:.doc 裡的提示框變引言、公式變 LaTeX、沒有介面雜訊', async () => {
+  const page = await home();
+  await pickFile(page, 'math.md');
+  await page.evaluate(() => { navigator.canShare = () => false; delete navigator.share; });
+  const html = await page.evaluate(() => PWA_EXPORT.toPlainHtml({ name: 'math.md' }));
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  const dl = page.waitForEvent('download', { timeout: 8000 });
+  await page.tap('#export-list li:nth-child(4) button');
+  const file = await dl;
+  await page.close();
+  assert(file.suggestedFilename() === 'math.doc' && html.includes('<!DOCTYPE html>') && html.includes('$') && !html.includes('katex') && !html.includes('mdr-ripple') && !html.includes('class='), JSON.stringify({ name: file.suggestedFilename(), tex: html.includes('$'), katex: html.includes('katex') }));
+  return 'math.doc;公式還原成 $LaTeX$';
+});
+await check('4 閱讀頁', 'PDF:開啟列印畫面(列印時只留內容)', async () => {
+  const page = await home();
+  await pickFile(page, 'sample-zh.md');
+  await page.evaluate(() => { window.print = () => { window.__printed = true; }; });
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  await page.tap('#export-list li:nth-child(3) button');
+  await sleep(300);
+  const r = await page.evaluate(() => ({ printed: !!window.__printed, closed: !document.getElementById('export-sheet').classList.contains('is-open') }));
+  await page.emulateMedia({ media: 'print' });
+  const hidden = await page.evaluate(() => [getComputedStyle(document.querySelector('.pwa-back')).display, getComputedStyle(document.querySelector('.mdr-toolbar')).display]);
+  await page.close();
+  assert(r.printed && r.closed && hidden.every((d) => d === 'none'), JSON.stringify({ r, hidden }));
+  return '列印畫面開啟,返回鍵與工具列不會印出來';
+});
+await check('4 閱讀頁', '存成 Google 文件:還沒登入時說明清楚', async () => {
+  const page = await home();
+  await pickFile(page, 'sample-zh.md');
+  await page.tap('.mdr-toolbar [data-action="settings"]');
+  await sleep(450);
+  await page.tap('#rs-share');
+  await sleep(450);
+  await page.tap('#export-list li:nth-child(5) button');
+  await sleep(300);
+  const toast = await page.textContent('.pwa-toast');
+  await page.close();
+  assert(toast.includes('還沒設定 Google 登入'), toast);
+  return toast.slice(0, 24);
 });
 await check('4 閱讀頁', '連到同資料夾其他筆記的連結:不跳到錯誤頁,說明原因', async () => {
   const page = await home();
@@ -335,8 +448,8 @@ await check('5 Google Drive', '登入(整頁跳轉)→ 列出 .md(篩掉其他�
   await page.close();
   await dctx.close();
   const scope = authUrl?.searchParams.get('scope');
-  assert(names.join() === '週會紀錄.md,讀書筆記.markdown' && ok && auth === 'Bearer GOOD' && cleanUrl && scope.endsWith('drive.readonly') && authUrl.searchParams.get('response_type') === 'token', JSON.stringify({ names, ok, auth, cleanUrl, scope }));
-  return `只要讀取權限;列出 ${names.length} 個 .md;登入憑證沒留在網址上`;
+  assert(names.join() === '週會紀錄.md,讀書筆記.markdown' && ok && auth === 'Bearer GOOD' && cleanUrl && scope.includes('drive.readonly') && scope.includes('drive.file') && !scope.includes('auth/drive ') && authUrl.searchParams.get('response_type') === 'token', JSON.stringify({ names, ok, auth, cleanUrl, scope }));
+  return `只要讀取 + 建立檔案權限;列出 ${names.length} 個 .md;登入憑證沒留在網址上`;
 });
 await check('5 Google Drive', '登入過期(401):回到登入畫面', async () => {
   const dctx = await phone();

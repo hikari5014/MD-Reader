@@ -4,7 +4,7 @@
 //   chrome.storage.local → IndexedDB(最近開過的文件內容,可能很大)
 //   chrome.runtime       → 引擎檔案的網址、版本號、訊息(載入流程圖元件、打開設定面板)
 (() => {
-  const VERSION = '2.0.0';
+  const VERSION = '2.1.0';
   const ENGINE = new URL('../extension/', document.currentScript.src).href;
   const listeners = [];
   const handlers = {};

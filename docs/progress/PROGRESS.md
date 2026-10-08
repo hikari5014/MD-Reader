@@ -1,5 +1,21 @@
 # 進度日記
 
+## 2026-10-08 v2.1.0
+
+### 本日完成
+- PM 回報在桌面 Chrome 按「分享這份文件」出現「分享失敗:Permission denied」,並要求能分享 MD 原始碼、PNG、PDF、Word、Google 文件
+- 分享改成「分享 / 匯出」選單(五種格式);分享被瀏覽器擋下 → 自動改成下載;使用者自己取消 → 安靜返回
+- Word / Google 文件共用一份「乾淨 HTML」:提示框 → 引言、KaTeX → `$LaTeX$`、流程圖 → 說明文字、拔掉 class 與介面裝飾
+- Google 文件用 Drive multipart 上傳並轉檔;權限多了 `drive.file`(既有登入需重新登入)
+- 手機版自動化測試 28/28(新增 6 項)
+
+### 遇到的問題
+- 匯出的 PNG 裡提示框圖示變成「ec」「lo」等被裁掉的英文字:ui.css 還有一條指向 `chrome-extension://` 的**同名**字型,截圖元件會被它干擾 → 自己組 `fontEmbedCSS`(圖示字型轉成 data URL)接在最後
+- 桌面 Chrome 分享檔案被擋是常態,不應該當成錯誤顯示給使用者 → 一律 fallback 下載;`AbortError`(使用者取消)要與失敗分開處理
+
+### 下一步
+- PM 驗收 v2.1.0;Google 文件那項要先申請用戶端 ID 並重新登入
+
 ## 2026-09-22 v2.0.0
 
 ### 本日完成

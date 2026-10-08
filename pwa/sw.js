@@ -1,11 +1,11 @@
 // 背景快取程式:第一次開啟時把整個 App 存進手機,之後沒網路也能用
 // 發新版時一定要改 VERSION(npm test:pwa 會檢查跟 package.json 一致),手機才會換成新檔案
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const CACHE = `mdr-pwa-${VERSION}`;
 const E = '../extension/';
 // App 本體(流程圖元件 3.5MB 不預先下載:第一次用到時才存)
 const SHELL = [
-  './', 'index.html', 'read.html', 'platform.js', 'config.js', 'shell.js', 'drive.js', 'home.js', 'read.js', 'pwa.css',
+  './', 'index.html', 'read.html', 'platform.js', 'config.js', 'shell.js', 'drive.js', 'export.js', 'home.js', 'read.js', 'pwa.css',
   'manifest.webmanifest', 'vendor/katex.min.css', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
   `${E}styles/reader.css`, `${E}styles/ui.css`,
   `${E}core/ui.js`, `${E}core/detect.js`, `${E}core/settings.js`, `${E}core/library.js`, `${E}core/syntax.js`,

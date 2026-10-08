@@ -2,7 +2,8 @@
 // 登入用「整頁跳轉」而不是彈出視窗:iPhone 主畫面 App 常擋彈出視窗、或卡在一直轉圈
 // 權限只要「讀取」(drive.readonly);登入憑證 1 小時後失效,只存在這支手機
 (() => {
-  const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+  // readonly:列出、下載雲端硬碟的 .md;file:把文件存成 Google 文件(只能碰這個 App 自己建的檔)
+  const SCOPE = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
   const API = 'https://www.googleapis.com/drive/v3/files';
   const TOKEN_KEY = 'mdr-drive-token';
   const STATE_KEY = 'mdr-drive-state';
@@ -71,11 +72,32 @@
 
   const download = async (id) => (await call(`${API}/${encodeURIComponent(id)}?alt=media`)).text();
 
+  // 把 HTML 上傳到雲端硬碟並轉成 Google 文件;回傳可以打開的網址
+  async function uploadAsGoogleDoc(name, html) {
+    const token = readToken();
+    if (!token) throw Object.assign(new Error('登入已過期,請重新登入'), { code: 'auth' });
+    const boundary = `mdr${Math.random().toString(36).slice(2)}`;
+    const meta = JSON.stringify({ name, mimeType: 'application/vnd.google-apps.document' });
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n`
+      + `--${boundary}\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${html}\r\n--${boundary}--`;
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    }).catch(() => { throw new Error('連不上 Google Drive,請檢查網路'); });
+    if (res.status === 401) { forget(); throw Object.assign(new Error('登入已過期,請重新登入'), { code: 'auth' }); }
+    // 403:多半是登入時還沒有「建立檔案」這項權限(加了新權限後要重新登入)
+    if (res.status === 403) throw Object.assign(new Error('沒有建立檔案的權限,請登出後重新登入一次'), { code: 'auth' });
+    if (!res.ok) throw new Error(`Google Drive 回應 ${res.status}`);
+    const data = await res.json();
+    return data.webViewLink || `https://docs.google.com/document/d/${data.id}/edit`;
+  }
+
   async function signOut() {
     const token = readToken();
     forget();
     if (token) await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, { method: 'POST' }).catch(() => {});
   }
 
-  globalThis.PWA_DRIVE = { configured: () => !!clientId(), signedIn: () => !!readToken(), signIn, handleRedirect, list, download, signOut, redirectUri };
+  globalThis.PWA_DRIVE = { configured: () => !!clientId(), signedIn: () => !!readToken(), signIn, handleRedirect, list, download, uploadAsGoogleDoc, signOut, redirectUri };
 })();

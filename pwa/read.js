@@ -57,6 +57,83 @@
     document.documentElement.dataset.mdr = 'error';
   }
 
+  // ---------- 分享 / 匯出面板:五種格式 ----------
+  // 每一種都先試手機的分享選單,被瀏覽器擋下就自動改成下載(桌機 Chrome 常見)
+  let exportApi = null;
+  function exportSheet(d) {
+    if (exportApi) return exportApi;
+    const el = document.createElement('div');
+    el.className = 'pwa-sheet';
+    el.id = 'export-sheet';
+    el.hidden = true;
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', '分享 / 匯出');
+    el.innerHTML = `
+      <div class="pwa-sheet-handle" aria-hidden="true"></div>
+      <h2><span class="mdr-icon" data-icon="ios_share" aria-hidden="true"></span>分享 / 匯出</h2>
+      <ul class="pwa-list" id="export-list"></ul>
+      <p class="pwa-hint" id="export-note">手機會跳出分享選單(可存到「檔案」、傳給別的 App);電腦則是直接下載。</p>`;
+    document.body.append(el);
+    const api = PWA.sheet(el);
+    const FORMATS = [
+      { icon: 'description', title: 'Markdown 原始碼', sub: '.md,原汁原味的文字檔', run: async () => tell(await PWA_EXPORT.shareOrDownload(PWA_EXPORT.markdownFile(d))) },
+      { icon: 'image', title: '整頁圖片', sub: '.png,整篇排版好的長圖', run: async () => tell(await PWA_EXPORT.shareOrDownload(await PWA_EXPORT.pngFile(d))) },
+      { icon: 'picture_as_pdf', title: 'PDF', sub: '開列印畫面,選「儲存為 PDF」', run: async () => { api.close(); PWA_EXPORT.printDocument(); } },
+      { icon: 'edit_document', title: 'Word 文件', sub: '.doc,Word、Pages 都打得開', run: async () => tell(await PWA_EXPORT.shareOrDownload(PWA_EXPORT.wordFile(d))) },
+      { icon: 'add_to_drive', title: '存成 Google 文件', sub: '上傳到你的雲端硬碟', run: (row) => toGoogleDoc(row) },
+    ];
+    const list = el.querySelector('#export-list');
+    list.replaceChildren(...FORMATS.map((f, i) => {
+      const li = document.createElement('li');
+      li.style.setProperty('--i', String(i));
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pwa-row mdr-ix';
+      b.innerHTML = '<span class="pwa-row-icon"></span><span class="pwa-row-text"><span></span><small></small></span>';
+      b.querySelector('.pwa-row-icon').append(MDR.icon(f.icon));
+      b.querySelector('.pwa-row-text > span').textContent = f.title;
+      b.querySelector('small').textContent = f.sub;
+      b.append(MDR.icon('chevron_right'));
+      b.lastChild.classList.add('pwa-row-arrow');
+      b.onclick = async () => {
+        if (b.classList.contains('is-busy')) return;
+        b.classList.add('is-busy');
+        try {
+          await f.run(b);
+        } catch (err) {
+          PWA.toast(err.message, 'error', 4000);
+        } finally {
+          b.classList.remove('is-busy');
+        }
+      };
+      li.append(b);
+      return li;
+    }));
+    const tell = (how) => {
+      if (how === 'cancelled') return;
+      PWA.toast(how === 'shared' ? '已開啟分享選單' : '已下載到這台裝置');
+      api.close();
+    };
+    async function toGoogleDoc(row) {
+      if (!PWA_DRIVE.configured()) throw new Error('還沒設定 Google 登入(步驟見 docs/guide/PWA-GOOGLE-DRIVE.md)');
+      if (!PWA_DRIVE.signedIn()) throw new Error('請先回首頁用「Google Drive」登入,再回來匯出');
+      const link = await PWA_EXPORT.toGoogleDoc(d);
+      const open = document.createElement('a');
+      open.className = 'mdr-btn-primary mdr-ix';
+      open.href = link;
+      open.target = '_blank';
+      open.rel = 'noopener';
+      open.append(MDR.icon('open_in_new'), '打開 Google 文件');
+      const note = el.querySelector('#export-note');
+      note.replaceChildren(open);
+      row.querySelector('small').textContent = '已上傳到你的雲端硬碟';
+      PWA.toast('已存成 Google 文件');
+    }
+    exportApi = api;
+    return api;
+  }
+
   // ---------- 閱讀設定面板(工具列的齒輪)----------
   function buildSheet(d) {
     const el = document.createElement('div');
@@ -93,7 +170,7 @@
       </label>
       <div class="pwa-row-actions">
         <a class="mdr-btn mdr-ix" href="./"><span class="mdr-icon" data-icon="arrow_back" aria-hidden="true"></span>回首頁</a>
-        <button type="button" class="mdr-btn-primary mdr-ix" id="rs-share"><span class="mdr-icon" data-icon="ios_share" aria-hidden="true"></span>分享這份文件</button>
+        <button type="button" class="mdr-btn-primary mdr-ix" id="rs-share"><span class="mdr-icon" data-icon="ios_share" aria-hidden="true"></span>分享 / 匯出</button>
       </div>`;
     const sheet = PWA.sheet(el);
     const q = (sel) => el.querySelector(sel);
@@ -125,7 +202,7 @@
       };
     }
     q('#rs-vault').onchange = (e) => MDR.saveSettings({ obsidianVault: e.target.value.trim() });
-    q('#rs-share').onclick = () => PWA.shareDoc(d);
+    q('#rs-share').onclick = () => { sheet.close(); exportSheet(d).open(); };
     el.addEventListener('sheet-open', () => requestAnimationFrame(refresh));
     MDR_PWA.on('open-options', () => sheet.open()); // 引擎工具列的齒輪
     return el;
